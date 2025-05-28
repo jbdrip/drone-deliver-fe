@@ -4,7 +4,8 @@ export const authLogin = async user => {
   return await consumeService({
     url: 'auth/login',
     method: 'POST',
-    body: JSON.stringify(user)
+    body: JSON.stringify(user),
+    redirectOn401: false
   })
 }
 

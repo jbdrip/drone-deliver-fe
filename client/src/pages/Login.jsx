@@ -5,15 +5,16 @@ import Cookies from "js-cookie"
 
 
 export default function Login() {
-  const [correo, setCorreo] = useState("")
-  const [contrasenia, setContrasenia] = useState("")
+
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
   const [error, setError] = useState("")
   const navigate = useNavigate()
 
   const handleLogin = async (e) => {
     e.preventDefault()
     try {
-      const loginRes = await authLogin({ correo, contrasenia })
+      const loginRes = await authLogin({ username: email, password })
 
       const options = {
         expires: 1, // Número de días antes de que la cookie expire
@@ -21,9 +22,10 @@ export default function Login() {
         path: '/' // Define el camino en el cual la cookie es válida
       }
 
-      if(loginRes && loginRes.status === 1) {
-        Cookies.set('access_token', loginRes.data.token, options)
-        Cookies.set('usuario', JSON.stringify(loginRes.data.usuario), options)
+      if(loginRes && loginRes.status === 'success') {
+        // Guardar el token de acceso en una cookie
+        Cookies.set('access_token', loginRes.data.access_token, options)
+        // Cookies.set('usuario', JSON.stringify(loginRes.data.usuario), options)
         navigate("/dashboard")
       } else {
         setError(loginRes.mensaje || "Error al iniciar sesión.")
@@ -42,23 +44,23 @@ export default function Login() {
         className="bg-white p-6 rounded shadow-md w-96"
       >
         <h2 className="text-2xl mb-4 text-center">Iniciar sesión</h2>
-        {error && <p className="text-red-500 mb-3">{error}</p>}
-        <div className="mb-4">
-          <label className="block text-gray-700">Correo</label>
+        <div className="my-4">
+          {error && <p className="text-red-500 mb-3">{error}</p>}
+          <label className="block text-gray-700">Correo electrónico</label>
           <input
             type="email"
-            value={correo}
-            onChange={(e) => setCorreo(e.target.value)}
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             className="w-full border px-3 py-2 rounded"
             required
           />
         </div>
-        <div className="mb-6">
+        <div className="mb-9">
           <label className="block text-gray-700">Contraseña</label>
           <input
             type="password"
-            value={contrasenia}
-            onChange={(e) => setContrasenia(e.target.value)}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
             className="w-full border px-3 py-2 rounded"
             required
           />

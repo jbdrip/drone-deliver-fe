@@ -21,7 +21,7 @@ export default function Sidebar({ isCollapsed, toggle }) {
         <div className="flex flex-col items-center sm:items-start p-4 h-full pt-16">
 
           <NavLink
-            to="/dashboard"
+            to="/users"
             className={({ isActive }) =>
               `flex items-center w-full py-2 px-3 mb-4 rounded-lg hover:bg-blue-100 transition ${
                 isActive ? 'bg-blue-200 font-bold' : ''
@@ -29,7 +29,7 @@ export default function Sidebar({ isCollapsed, toggle }) {
             }
           >
             <FaTachometerAlt className="text-xl" />
-            {!isCollapsed && <span className="ml-3">Dashboard</span>}
+            {!isCollapsed && <span className="ml-3">Usuarios</span>}
           </NavLink>
 
           <NavLink
@@ -41,7 +41,7 @@ export default function Sidebar({ isCollapsed, toggle }) {
             }
           >
             <FaChartBar className="text-xl" />
-            {!isCollapsed && <span className="ml-3">Power BI</span>}
+            {!isCollapsed && <span className="ml-3">Centrales</span>}
           </NavLink>
 
           <NavLink
@@ -53,7 +53,7 @@ export default function Sidebar({ isCollapsed, toggle }) {
             }
           >
             <FaChartBar className="text-xl" />
-            {!isCollapsed && <span className="ml-3">Productos</span>}
+            {!isCollapsed && <span className="ml-3">Clientes</span>}
           </NavLink>
         </div>
       </div>

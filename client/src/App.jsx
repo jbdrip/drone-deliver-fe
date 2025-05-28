@@ -6,7 +6,7 @@ import AuthGuard from './components/AuthGuard'
 
 // Pages
 import Login from "./pages/Login"
-import Dashboard from "./pages/Dashboard"
+import Users from "./pages/Users"
 
 
 function App() {
@@ -16,7 +16,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Login />} />
         <Route element={<AuthGuard><Layout /></AuthGuard>}>
-          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/users" element={<Users />} />
         </Route>
       </Routes>
     </BrowserRouter>
