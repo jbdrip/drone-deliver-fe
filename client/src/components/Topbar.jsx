@@ -5,11 +5,29 @@ import logo from '../assets/react.svg'
 import { FaSignOutAlt } from 'react-icons/fa'
 
 export default function TopBar({ isCollapsed, toggle }) {
+
   const handleLogout = () => {
     Cookies.remove('access_token')
     Cookies.remove('usuario')
     window.location.href = '/'
   }
+
+  const getUserData = () => {
+    try {
+      const userCookie = Cookies.get('usuario')
+      if (userCookie) {
+        return JSON.parse(userCookie)
+      }
+      return null
+    } catch (error) {
+      console.error('Error al parsear datos del usuario:', error)
+      return null
+    }
+  }
+
+  const userData = getUserData()
+  const userName = userData?.full_name  || 'Usuario'
+  const userEmail = userData?.email || '- - - - - -'
 
   return (
     <div className="flex justify-between items-center bg-blue-600 text-white px-4 py-3 shadow-md relative z-30">
@@ -29,7 +47,7 @@ export default function TopBar({ isCollapsed, toggle }) {
         {/* Welcome message - hidden on small screens */}
         <div className="hidden md:block text-right">
           <p className="text-sm text-blue-100">Bienvenido</p>
-          <p className="text-xs text-blue-200">Administrador</p>
+          <p className="text-xs text-blue-200">{userName}</p>
         </div>
 
         {/* User menu */}
@@ -41,8 +59,8 @@ export default function TopBar({ isCollapsed, toggle }) {
           
           <MenuItems className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50 py-1">
             <div className="px-4 py-3 border-b border-gray-100">
-              <p className="text-sm font-medium text-gray-900">Usuario Administrador</p>
-              <p className="text-xs text-gray-500">admin@empresa.com</p>
+              <p className="text-sm font-medium text-gray-900">{userName}</p>
+              <p className="text-xs text-gray-500">{userEmail}</p>
             </div>
             
             <MenuItem>

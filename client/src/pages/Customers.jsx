@@ -226,7 +226,7 @@ export default function Customers() {
 
   return (
     <div className="h-full flex flex-col">
-      
+
       {/* Header - Fixed height */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6 flex-shrink-0">
         <h1 className="text-2xl font-bold text-gray-900">Clientes</h1>
@@ -249,7 +249,7 @@ export default function Customers() {
           currentPage={currentPage}
           onPageChange={handlePageChange}
           onSearch={handleSearch}
-          searchPlaceholder="Buscar clientes por nombre o email..."
+          searchPlaceholder="Buscar clientes por nombre, email, teléfono o dirección..."
           isLoading={isLoading}
         />
       </div>
