@@ -1,51 +1,52 @@
 import { useState, useEffect, useCallback } from 'react'
 import DataTable from '../components/DataTable'
-import UserFormModal from '../components/forms/UserForm'
+import CustomerForm from '../components/forms/CustomerForm'
 import Tooltip from '../components/Tooltip'
-import { getUsers, createUser, updateUser, deactivateUser } from '../services/user.service'
-import Cookies from "js-cookie"
+import { getCustomers, createCustomer, updateCustomer, deactivateCustomer } from '../services/customer.service'
 import { Edit, UserX, UserPlus } from 'lucide-react';
 import { toast } from 'react-toastify'
 import useConfirmDialog from '../components/ConfirmDialog'
 
-export default function Users() {
-  const [users, setUsers] = useState([])
-  const [totalUsers, setTotalUsers] = useState(0)
+
+export default function Customers() {
+
+  const [customers, setCustomers] = useState([])
+  const [totalCustomers, setTotalCustomers] = useState(0)
   const [currentPage, setCurrentPage] = useState(1)
   const [searchTerm, setSearchTerm] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [selectedUser, setSelectedUser] = useState(null)
+  const [selectedCustomer, setSelectedCustomer] = useState(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   
   const itemsPerPage = 10
 
-  const { showDialog, ConfirmDialogComponent } = useConfirmDialog();
+  const { showDialog, ConfirmDialogComponent } = useConfirmDialog()
 
-  const fetchUsers = useCallback(async () => {
+  const fetchCustomers = useCallback(async () => {
     setIsLoading(true)
     try {
-      const response = await getUsers(currentPage, itemsPerPage, searchTerm)
+      const response = await getCustomers(currentPage, itemsPerPage, searchTerm)
       if (response.status === 'success' && response.data) {
-        setUsers(response.data.users || [])
-        setTotalUsers(response.data.total || 0)
+        setCustomers(response.data.customers || [])
+        setTotalCustomers(response.data.total || 0)
       } else {
-        console.error('Error fetching users:', response.message)
-        setUsers([])
-        setTotalUsers(0)
+        console.error('Error fetching customers:', response.message)
+        setCustomers([])
+        setTotalCustomers(0)
       }
     } catch (error) {
-      console.error('Error fetching users:', error)
-      setUsers([])
-      setTotalUsers(0)
+      console.error('Error fetching customers:', error)
+      setCustomers([])
+      setTotalCustomers(0)
     } finally {
       setIsLoading(false)
     }
   }, [currentPage, searchTerm])
 
   useEffect(() => {
-    fetchUsers()
-  }, [fetchUsers])
+    fetchCustomers()
+  }, [fetchCustomers])
 
   const handlePageChange = (newPage) => {
     setCurrentPage(newPage)
@@ -56,41 +57,36 @@ export default function Users() {
     setCurrentPage(1) // Reset to first page when searching
   }
 
-  const handleCreateUser = () => {
-    setSelectedUser(null)
+  const handleCreateCustomer = () => {
+    setSelectedCustomer(null)
     setIsModalOpen(true)
   }
 
-  const handleEditUser = user => {
-    setSelectedUser(user)
+  const handleEditCustomer = user => {
+    setSelectedCustomer(user)
     setIsModalOpen(true)
   }
 
-  const handleDeactivateUser = async (user) => {
+  const handleDeactivateCustomer = async (customer) => {
     showDialog({
-      title: "Desactivar Usuario",
-      message: `¿Estás seguro de que deseas desactivar al usuario "${user.full_name}"?\n Una vez desactivado, no podrá reactivar su cuenta.`,
-      confirmText: "Desactivar",
+      title: "Eliminar Cliente",
+      message: `¿Estás seguro de que deseas eliminar al cliente "${customer.full_name}"?\n Una vez eliminado, no podrá recuperar sus datos.`,
+      confirmText: "Eliminar",
       cancelText: "Cancelar",
       type: "danger",
       onConfirm: async () => {
         try {
-          // Validate that the deactivated user is not the currently logged-in user
-          const currentUser = JSON.parse(Cookies.get('usuario'))
-          if (currentUser && currentUser.id === user.id)
-            return toast.error('No puedes desactivar tu propio usuario.')
-
-          const response = await deactivateUser(user.id)
+          const response = await deactivateCustomer(customer.id)
           if (response.status === 'success') {
-            fetchUsers() // Refresh the list
-            toast.success(`Usuario "${user.full_name}" desactivado exitosamente.`)
+            fetchCustomers() // Refresh the list
+            toast.success(`Cliente "${customer.full_name}" eliminado exitosamente.`)
           } else {
-            console.error('Error deactivating user:', response.message)
-            toast.error(`Error al desactivar usuario: ${response.message}`)
+            console.error('Error deleting customer:', response.message)
+            toast.error(`Error al eliminar cliente: ${response.message}`)
           }
         } catch (error) {
-          console.error('Error deactivating user:', error)
-          toast.error('Error al desactivar usuario')
+          console.error('Error deleting customer:', error)
+          toast.error('Error al eliminar cliente')
         }
       }
     });
@@ -100,39 +96,34 @@ export default function Users() {
     setIsSubmitting(true)
     try {
       let response
-      const {  name, email, password } = formData
-      const user = { full_name: name, email, password }
+      const {  name, ...rest } = formData
+      const customer = { ...rest, full_name: name }
 
-      if (selectedUser) {
-        // Editing existing user
-        response = await updateUser(selectedUser.id, user)
+      if (selectedCustomer) {
+        // Editing existing customer
+        response = await updateCustomer(selectedCustomer.id, customer)
       } else {
-        // Creating new user
-        response = await createUser(user)
+        // Creating new customer
+        response = await createCustomer(customer)
       }
 
       if (response.status === 'success') {
         setIsModalOpen(false)
-        fetchUsers() // Refresh the list
-        toast.success(`Usuario ${selectedUser ? 'actualizado' : 'creado'} exitosamente.`)
+        fetchCustomers() // Refresh the list
+        toast.success(`Cliente ${selectedCustomer ? 'actualizado' : 'creado'} exitosamente.`)
       } else {
         console.error('Error submitting form:', response.message)
-        toast.error(`Error al ${selectedUser ? 'actualizar' : 'crear'} usuario: ${response.message}`)
+        toast.error(`Error al ${selectedCustomer ? 'actualizar' : 'crear'} cliente: ${response.message}`)
       }
     } catch (error) {
       console.error('Error submitting form:', error)
-      toast.error(`Error al ${selectedUser ? 'actualizar' : 'crear'} usuario: ${error.message || 'Error desconocido'}`)
+      toast.error(`Error al ${selectedCustomer ? 'actualizar' : 'crear'} cliente: ${error.message || 'Error desconocido'}`)
     } finally {
       setIsSubmitting(false)
     }
   }
 
   const columns = [
-    {
-      header: 'ID',
-      key: 'id',
-      width: 'w-16', // Fixed width for ID
-    },
     {
       header: 'Nombre',
       key: 'full_name',
@@ -142,6 +133,41 @@ export default function Users() {
       header: 'Email',
       key: 'email',
       width: 'min-w-48', // Minimum width for email
+    },
+    {
+      header: 'Teléfono',
+      key: 'phone',
+      width: 'min-w-32', // Minimum width for phone
+      render: (user) => (
+        <span className="whitespace-nowrap">
+          {user.phone || 'No disponible'}
+        </span>
+      )
+    },
+    {
+      header: 'Dirección',
+      key: 'address',
+      width: 'min-w-48', // Minimum width for address
+    },
+    {
+      header: 'Latitud',
+      key: 'latitude',
+      width: 'w-32', // Fixed width for latitude
+    },
+    {
+      header: 'Longitud',
+      key: 'longitude',
+      width: 'w-32', // Fixed width for longitude
+    },
+    {
+      header: 'Créditos',
+      key: 'credit_balance',
+      width: 'w-24', // Fixed width for credits
+      render: (user) => (
+        <span className="whitespace-nowrap">
+          Q {user.credit_balance ? user.credit_balance.toLocaleString('es-ES') : '0'}
+        </span>
+      )
     },
     {
       header: 'Estado',
@@ -173,21 +199,21 @@ export default function Users() {
       width: 'w-40', // Fixed width for actions
       render: (user) => (
         <div className="flex space-x-2 whitespace-nowrap">
-          <Tooltip text="Editar usuario">
+          <Tooltip text="Editar cliente">
             <button
-              onClick={() => handleEditUser(user)}
+              onClick={() => handleEditCustomer(user)}
               className="p-2 text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 hover:text-blue-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
-              aria-label="Editar usuario"
+              aria-label="Editar cliente"
             >
               <Edit size={16} />
             </button>
           </Tooltip>
           {user.is_active && (
-            <Tooltip text="Desactivar usuario">
+            <Tooltip text="Eliminar cliente">
               <button
-                onClick={() => handleDeactivateUser(user)}
+                onClick={() => handleDeactivateCustomer(user)}
                 className="p-2 text-red-600 bg-red-50 rounded-lg hover:bg-red-100 hover:text-red-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
-                aria-label="Desactivar usuario"
+                aria-label="Eliminar cliente"
               >
                 <UserX size={16} />
               </button>
@@ -200,16 +226,16 @@ export default function Users() {
 
   return (
     <div className="h-full flex flex-col">
+      
       {/* Header - Fixed height */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6 flex-shrink-0">
-        <h1 className="text-2xl font-bold text-gray-900">Usuarios</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Clientes</h1>
         <button
-          onClick={handleCreateUser}
+          onClick={handleCreateCustomer}
           className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors whitespace-nowrap"
         >
           <UserPlus size={16} />
-          <span>Crear Usuario</span>
-          
+          <span>Crear Cliente</span>
         </button>
       </div>
 
@@ -217,22 +243,22 @@ export default function Users() {
       <div className="flex-1 min-h-0">
         <DataTable
           columns={columns}
-          data={users}
-          totalItems={totalUsers}
+          data={customers}
+          totalItems={totalCustomers}
           itemsPerPage={itemsPerPage}
           currentPage={currentPage}
           onPageChange={handlePageChange}
           onSearch={handleSearch}
-          searchPlaceholder="Buscar usuarios por nombre o email..."
+          searchPlaceholder="Buscar clientes por nombre o email..."
           isLoading={isLoading}
         />
       </div>
 
-      <UserFormModal
+      <CustomerForm
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSubmit={handleFormSubmit}
-        user={selectedUser}
+        customer={selectedCustomer}
         isLoading={isSubmitting}
       />
 

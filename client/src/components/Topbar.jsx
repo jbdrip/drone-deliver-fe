@@ -19,7 +19,7 @@ export default function TopBar({ isCollapsed, toggle }) {
           <img src={logo} alt="Logo" className="h-8 w-8" />
           <div className="hidden sm:block">
             <h1 className="font-semibold text-lg">Panel Administrativo</h1>
-            <p className="text-blue-100 text-xs">Sistema de Gestión</p>
+            <p className="text-blue-100 text-xs">Sistema de Gestión de Entregas con Drones</p>
           </div>
         </div>
       </div>

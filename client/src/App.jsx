@@ -8,7 +8,7 @@ import AuthGuard from './components/AuthGuard'
 // Pages
 import Login from "./pages/Login"
 import Users from "./pages/Users"
-
+import Customers from "./pages/Customers"
 
 function App() {
 
@@ -19,6 +19,8 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route element={<AuthGuard><Layout /></AuthGuard>}>
           <Route path="/users" element={<Users />} />
+          <Route path="/customers" element={<Customers />} />
+          <Route path="*" element={<div>404 Not Found</div>} />
         </Route>
       </Routes>
       <ToastContainer />

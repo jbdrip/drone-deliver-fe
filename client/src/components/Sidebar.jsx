@@ -20,9 +20,9 @@ export default function Sidebar({ isCollapsed, toggle }) {
         {!isCollapsed && (
           <div className="flex items-center space-x-2">
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">A</span>
+              <span className="text-white font-bold text-sm">D2</span>
             </div>
-            <span className="font-semibold text-gray-800">Admin</span>
+            <span className="font-semibold text-gray-800">Drone Deliver</span>
           </div>
         )}
       </div>
@@ -52,7 +52,7 @@ export default function Sidebar({ isCollapsed, toggle }) {
           )}
         </NavLink>
 
-        <NavLink
+        {/*<NavLink
           to="/powerbi"
           className={({ isActive }) =>
             `flex items-center py-3 px-3 rounded-lg transition-all duration-200 group ${
@@ -73,10 +73,10 @@ export default function Sidebar({ isCollapsed, toggle }) {
               Centrales
             </div>
           )}
-        </NavLink>
+        </NavLink>*/}
 
         <NavLink
-          to="/inventory/products"
+          to="customers"
           className={({ isActive }) =>
             `flex items-center py-3 px-3 rounded-lg transition-all duration-200 group ${
               isActive 
@@ -103,7 +103,7 @@ export default function Sidebar({ isCollapsed, toggle }) {
       <div className="p-4 border-t border-gray-200">
         {!isCollapsed ? (
           <div className="text-xs text-gray-500 text-center">
-            <p>© 2024 Admin Panel</p>
+            <p>© 2025 Drone Deliver</p>
             <p>Versión 1.0.0</p>
           </div>
         ) : (
