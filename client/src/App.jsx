@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom"
+import { ToastContainer } from 'react-toastify'
 
 // Components
 import Layout from './components/Layout'
@@ -20,6 +21,7 @@ function App() {
           <Route path="/users" element={<Users />} />
         </Route>
       </Routes>
+      <ToastContainer />
     </BrowserRouter>
   )
 }
