@@ -1,6 +1,6 @@
 import Cookies from 'js-cookie'
 
-export async function consumeService({ url, method, body = null, redirectOn401 = true }) {
+export async function consumeService({ url, method, body = null }) {
   const accessToken = Cookies.get('access_token') || ''
   const baseUrl = `${import.meta.env.VITE_SERVER_URL}${url}`
   
@@ -17,9 +17,8 @@ export async function consumeService({ url, method, body = null, redirectOn401 =
   const contentType = res.headers.get('content-type')
   const content = contentType?.includes('application/json') ? await res.json() : {}
 
-  if (res.status === 401 && redirectOn401 && !window.location.href.includes('/login')) {
-    const isTokenExpired = content?.msg === 'Token has expired'
-    window.location.href = isTokenExpired ? '/login/' : '/401/'
+  if (res.status === 401 && !window.location.href.includes('/login')) {
+    window.location.href = '/login'
   }
   return content
 }

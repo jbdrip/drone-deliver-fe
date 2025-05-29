@@ -25,8 +25,8 @@ export default function Login() {
       if(loginRes && loginRes.status === 'success') {
         // Guardar el token de acceso en una cookie
         Cookies.set('access_token', loginRes.data.access_token, options)
-        // Cookies.set('usuario', JSON.stringify(loginRes.data.usuario), options)
-        navigate("/dashboard")
+        Cookies.set('usuario', JSON.stringify(loginRes.data.user_data), options)
+        navigate("/users")
       } else {
         setError(loginRes.mensaje || "Error al iniciar sesión.")
       }
