@@ -3,7 +3,7 @@ import DataTable from '../components/DataTable'
 import DistributionCenterForm from '../components/forms/DistributionCenterForm'
 import Tooltip from '../components/Tooltip'
 import { getDistributionCenters, createDistributionCenter, updateDistributionCenter, deactivateDistributionCenter } from '../services/distributionCenter.service'
-import { Edit, UserX, UserPlus } from 'lucide-react';
+import { CirclePlus, Edit, Trash } from 'lucide-react';
 import { toast } from 'react-toastify'
 import useConfirmDialog from '../components/ConfirmDialog'
 
@@ -95,6 +95,11 @@ export default function DistributionCenters() {
   }
 
   const handleFormSubmit = async formData => {
+    // Validate if a main distribution center already exists based on the form data and the current list
+    if (formData.center_type === 'main_warehouse' && distributionCenters.some(dc => dc.center_type === 'main_warehouse')) {
+      return toast.error('Ya existe una central de distribución principal. Solo puede haber una.')
+    }
+
     setIsSubmitting(true)
     try {
       let response
@@ -155,16 +160,16 @@ export default function DistributionCenters() {
       )
     },
     {
-      header: 'Estado',
-      key: 'is_active',
+      header: 'Tipo',
+      key: 'center_type',
       width: 'w-24', // Fixed width for status
-      render: (user) => (
+      render: (dd) => (
         <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap ${
-          user.is_active 
-            ? 'bg-green-100 text-green-800' 
-            : 'bg-red-100 text-red-800'
+          dd.center_type === 'main_warehouse'
+            ? 'bg-blue-100 text-blue-800' 
+            : 'bg-green-100 text-green-800'
         }`}>
-          {user.is_active ? 'ACTIVO' : 'INACTIVO'}
+          {dd.center_type === 'main_warehouse' ? 'Bodega Central' : 'Punto de Distribución'}
         </span>
       )
     },
@@ -200,7 +205,7 @@ export default function DistributionCenters() {
                 className="p-2 text-red-600 bg-red-50 rounded-lg hover:bg-red-100 hover:text-red-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
                 aria-label="Eliminar cliente"
               >
-                <UserX size={16} />
+                <Trash size={16} />
               </button>
             </Tooltip>
           )}
@@ -219,7 +224,7 @@ export default function DistributionCenters() {
           onClick={handleCreateDistributionCenter}
           className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors whitespace-nowrap"
         >
-          <UserPlus size={16} />
+          <CirclePlus size={16} />
           <span>Crear Central</span>
         </button>
       </div>

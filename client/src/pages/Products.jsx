@@ -1,52 +1,52 @@
 import { useState, useEffect, useCallback } from 'react'
 import DataTable from '../components/DataTable'
-import CustomerForm from '../components/forms/CustomerForm'
+import ProductForm from '../components/forms/ProductForm'
 import Tooltip from '../components/Tooltip'
-import { getCustomers, createCustomer, updateCustomer, deactivateCustomer } from '../services/customer.service'
-import { CirclePlus, Edit, Trash } from 'lucide-react';
+import { getProducts, createProduct, updateProduct, deactivateProduct } from '../services/product.service'
+import { Edit, Trash, CirclePlus } from 'lucide-react';
 import { toast } from 'react-toastify'
 import useConfirmDialog from '../components/ConfirmDialog'
 
 
-export default function Customers() {
+export default function Products() {
 
-  const [customers, setCustomers] = useState([])
-  const [totalCustomers, setTotalCustomers] = useState(0)
+  const [products, setProducts] = useState([])
+  const [totalProducts, setTotalProducts] = useState(0)
   const [currentPage, setCurrentPage] = useState(1)
   const [searchTerm, setSearchTerm] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [selectedCustomer, setSelectedCustomer] = useState(null)
+  const [selectedProduct, setSelectedProduct] = useState(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   
   const itemsPerPage = 10
 
   const { showDialog, ConfirmDialogComponent } = useConfirmDialog()
 
-  const fetchCustomers = useCallback(async () => {
+  const fetchProducts = useCallback(async () => {
     setIsLoading(true)
     try {
-      const response = await getCustomers(currentPage, itemsPerPage, searchTerm)
+      const response = await getProducts(currentPage, itemsPerPage, searchTerm)
       if (response.status === 'success' && response.data) {
-        setCustomers(response.data.customers || [])
-        setTotalCustomers(response.data.total || 0)
+        setProducts(response.data.products || [])
+        setTotalProducts(response.data.total || 0)
       } else {
-        console.error('Error fetching customers:', response.message)
-        setCustomers([])
-        setTotalCustomers(0)
+        console.error('Error fetching products:', response.message)
+        setProducts([])
+        setTotalProducts(0)
       }
     } catch (error) {
-      console.error('Error fetching customers:', error)
-      setCustomers([])
-      setTotalCustomers(0)
+      console.error('Error fetching products:', error)
+      setProducts([])
+      setTotalProducts(0)
     } finally {
       setIsLoading(false)
     }
   }, [currentPage, searchTerm])
 
   useEffect(() => {
-    fetchCustomers()
-  }, [fetchCustomers])
+    fetchProducts()
+  }, [fetchProducts])
 
   const handlePageChange = (newPage) => {
     setCurrentPage(newPage)
@@ -57,36 +57,36 @@ export default function Customers() {
     setCurrentPage(1) // Reset to first page when searching
   }
 
-  const handleCreateCustomer = () => {
-    setSelectedCustomer(null)
+  const handleCreateProduct = () => {
+    setSelectedProduct(null)
     setIsModalOpen(true)
   }
 
-  const handleEditCustomer = user => {
-    setSelectedCustomer(user)
+  const handleEditProduct = user => {
+    setSelectedProduct(user)
     setIsModalOpen(true)
   }
 
-  const handleDeactivateCustomer = async (customer) => {
+  const handleDeactivateProduct = async (product) => {
     showDialog({
-      title: "Eliminar Cliente",
-      message: `¿Estás seguro de que deseas eliminar al cliente "${customer.full_name}"?\n Una vez eliminado, no podrá recuperar sus datos.`,
+      title: "Eliminar Producto",
+      message: `¿Estás seguro de que deseas eliminar el producto "${product.name}"?\n Una vez eliminado, no podrá recuperar sus datos.`,
       confirmText: "Eliminar",
       cancelText: "Cancelar",
       type: "danger",
       onConfirm: async () => {
         try {
-          const response = await deactivateCustomer(customer.id)
+          const response = await deactivateProduct(product.id)
           if (response.status === 'success') {
-            fetchCustomers() // Refresh the list
-            toast.success(`Cliente "${customer.full_name}" eliminado exitosamente.`)
+            fetchProducts() // Refresh the list
+            toast.success(`Producto "${product.full_name}" eliminado exitosamente.`)
           } else {
-            console.error('Error deleting customer:', response.message)
-            toast.error(`Error al eliminar cliente: ${response.message}`)
+            console.error('Error deleting product:', response.message)
+            toast.error(`Error al eliminar producto: ${response.message}`)
           }
         } catch (error) {
-          console.error('Error deleting customer:', error)
-          toast.error('Error al eliminar cliente')
+          console.error('Error deleting product:', error)
+          toast.error('Error al eliminar producto')
         }
       }
     });
@@ -96,28 +96,26 @@ export default function Customers() {
     setIsSubmitting(true)
     try {
       let response
-      const {  name, ...rest } = formData
-      const customer = { ...rest, full_name: name }
 
-      if (selectedCustomer) {
-        // Editing existing customer
-        response = await updateCustomer(selectedCustomer.id, customer)
+      if (selectedProduct) {
+        // Editing existing product
+        response = await updateProduct(selectedProduct.id, formData)
       } else {
-        // Creating new customer
-        response = await createCustomer(customer)
+        // Creating new product
+        response = await createProduct(formData)
       }
 
       if (response.status === 'success') {
         setIsModalOpen(false)
-        fetchCustomers() // Refresh the list
-        toast.success(`Cliente ${selectedCustomer ? 'actualizado' : 'creado'} exitosamente.`)
+        fetchProducts() // Refresh the list
+        toast.success(`Producto ${selectedProduct ? 'actualizado' : 'creado'} exitosamente.`)
       } else {
         console.error('Error submitting form:', response.message)
-        toast.error(`Error al ${selectedCustomer ? 'actualizar' : 'crear'} cliente: ${response.message}`)
+        toast.error(`Error al ${selectedProduct ? 'actualizar' : 'crear'} producto: ${response.message}`)
       }
     } catch (error) {
       console.error('Error submitting form:', error)
-      toast.error(`Error al ${selectedCustomer ? 'actualizar' : 'crear'} cliente: ${error.message || 'Error desconocido'}`)
+      toast.error(`Error al ${selectedProduct ? 'actualizar' : 'crear'} producto: ${error.message || 'Error desconocido'}`)
     } finally {
       setIsSubmitting(false)
     }
@@ -126,60 +124,36 @@ export default function Customers() {
   const columns = [
     {
       header: 'Nombre',
-      key: 'full_name',
+      key: 'name',
       width: 'min-w-32', // Minimum width, can grow
     },
     {
-      header: 'Email',
-      key: 'email',
-      width: 'min-w-48', // Minimum width for email
-    },
-    {
-      header: 'Teléfono',
-      key: 'phone',
-      width: 'min-w-32', // Minimum width for phone
+      header: 'Descripción',
+      key: 'description',
+      width: 'min-w-48', // Minimum width for description
       render: (user) => (
         <span className="whitespace-nowrap">
-          {user.phone || 'No disponible'}
+          {user.description || '- - - - - -'}
         </span>
       )
     },
     {
-      header: 'Dirección',
-      key: 'address',
-      width: 'min-w-48', // Minimum width for address
-    },
-    {
-      header: 'Latitud',
-      key: 'latitude',
-      width: 'w-32', // Fixed width for latitude
-    },
-    {
-      header: 'Longitud',
-      key: 'longitude',
-      width: 'w-32', // Fixed width for longitude
-    },
-    {
-      header: 'Créditos',
-      key: 'credit_balance',
-      width: 'w-24', // Fixed width for credits
+      header: 'Precio',
+      key: 'price',
+      width: 'w-24', // Fixed width for price
       render: (user) => (
         <span className="whitespace-nowrap">
-          Q {user.credit_balance ? user.credit_balance.toLocaleString('es-ES') : '0'}
+          Q {user.price ? user.price.toLocaleString('es-ES') : '0'}
         </span>
       )
     },
     {
-      header: 'Estado',
-      key: 'is_active',
-      width: 'w-24', // Fixed width for status
+      header: 'Stock',
+      key: 'stock_quantity',
+      width: 'w-24', // Fixed width for stock
       render: (user) => (
-        <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap ${
-          user.is_active 
-            ? 'bg-green-100 text-green-800' 
-            : 'bg-red-100 text-red-800'
-        }`}>
-          {user.is_active ? 'ACTIVO' : 'INACTIVO'}
+        <span className="whitespace-nowrap">
+          {user.stock_quantity ? user.stock_quantity : '0'}
         </span>
       )
     },
@@ -199,21 +173,21 @@ export default function Customers() {
       width: 'w-40', // Fixed width for actions
       render: (user) => (
         <div className="flex space-x-2 whitespace-nowrap">
-          <Tooltip text="Editar cliente">
+          <Tooltip text="Editar producto">
             <button
-              onClick={() => handleEditCustomer(user)}
+              onClick={() => handleEditProduct(user)}
               className="p-2 text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 hover:text-blue-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
-              aria-label="Editar cliente"
+              aria-label="Editar producto"
             >
               <Edit size={16} />
             </button>
           </Tooltip>
           {user.is_active && (
-            <Tooltip text="Eliminar cliente">
+            <Tooltip text="Eliminar producto">
               <button
-                onClick={() => handleDeactivateCustomer(user)}
+                onClick={() => handleDeactivateProduct(user)}
                 className="p-2 text-red-600 bg-red-50 rounded-lg hover:bg-red-100 hover:text-red-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
-                aria-label="Eliminar cliente"
+                aria-label="Eliminar producto"
               >
                 <Trash size={16} />
               </button>
@@ -229,13 +203,13 @@ export default function Customers() {
 
       {/* Header - Fixed height */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6 flex-shrink-0">
-        <h1 className="text-2xl font-bold text-gray-900">Clientes</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Productos</h1>
         <button
-          onClick={handleCreateCustomer}
+          onClick={handleCreateProduct}
           className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors whitespace-nowrap"
         >
           <CirclePlus size={16} />
-          <span>Crear Cliente</span>
+          <span>Crear Producto</span>
         </button>
       </div>
 
@@ -243,22 +217,22 @@ export default function Customers() {
       <div className="flex-1 min-h-0">
         <DataTable
           columns={columns}
-          data={customers}
-          totalItems={totalCustomers}
+          data={products}
+          totalItems={totalProducts}
           itemsPerPage={itemsPerPage}
           currentPage={currentPage}
           onPageChange={handlePageChange}
           onSearch={handleSearch}
-          searchPlaceholder="Buscar clientes por nombre, email, teléfono o dirección..."
+          searchPlaceholder="Buscar productos por nombre o descripción..."
           isLoading={isLoading}
         />
       </div>
 
-      <CustomerForm
+      <ProductForm
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSubmit={handleFormSubmit}
-        customer={selectedCustomer}
+        product={selectedProduct}
         isLoading={isSubmitting}
       />
 
