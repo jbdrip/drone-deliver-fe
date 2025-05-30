@@ -22,7 +22,7 @@ export default function Sidebar({ isCollapsed, toggle }) {
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-sm">D2</span>
             </div>
-            <span className="font-semibold text-gray-800">Drone Deliver</span>
+            <span className="font-semibold text-gray-800">Drone Delivery</span>
           </div>
         )}
       </div>
