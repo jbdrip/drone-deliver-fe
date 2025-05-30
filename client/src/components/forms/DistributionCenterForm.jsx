@@ -1,14 +1,14 @@
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
-import { User, MapPin, Navigation, Info, Loader2 } from 'lucide-react'
+import { Building, MapPin, Navigation, Info, Loader2 } from 'lucide-react'
 import Modal from '../Modal'
 
-export default function CustomerForm({ 
+export default function DistributionCenterForm({ 
   isOpen, 
   onClose, 
   onSubmit, 
-  customer = null, 
-  isLoading = false 
+  distributionCenter = null,
+  isLoading = false
 }) {
 
   const {
@@ -18,36 +18,36 @@ export default function CustomerForm({
     formState: { errors }
   } = useForm()
 
-  const isEditing = !!customer
+  const isEditing = !!distributionCenter
 
-  const modalTitle = isEditing ? 'Editar Cliente' : 'Nuevo Cliente'
+  const modalTitle = isEditing ? 'Editar Central de Distribución' : 'Nueva Central de Distribución'
   const modalSubtitle = isEditing 
-    ? 'Actualiza la información del cliente' 
-    : 'Completa los datos para registrar un nuevo cliente'
+    ? 'Actualiza la información de la central de distribución' 
+    : 'Completa los datos para registrar una nueva central de distribución'
 
   useEffect(() => {
     if (isOpen) {
       if (isEditing) {
         reset({
-          name: customer.full_name,
-          email: customer.email,
-          phone: customer.phone,
-          address: customer.address,
-          latitude: customer.latitude,
-          longitude: customer.longitude,
+          name: distributionCenter.name,
+          address: distributionCenter.address,
+          latitude: distributionCenter.latitude,
+          longitude: distributionCenter.longitude,
+          max_drone_range: distributionCenter.max_drone_range,
+          center_type: distributionCenter.center_type
         })
       } else {
         reset({
           name: '',
-          email: '',
-          phone: '',
           address: '',
           latitude: 0.0,
-          longitude: 0.0
+          longitude: 0.0,
+          max_drone_range: 0,
+          center_type: 'distribution_point'
         })
       }
     }
-  }, [isOpen, customer, isEditing, reset])
+  }, [isOpen, distributionCenter, isEditing, reset])
 
   const handleFormSubmit = (data) => {
     onSubmit(data)
@@ -64,101 +64,102 @@ export default function CustomerForm({
       maxWidth="max-w-4xl"
       isLoading={isLoading}
     >
-      <form id="client-form" onSubmit={handleSubmit(handleFormSubmit)} className=" space-y-6">
+      <form id="distribution-center-form" onSubmit={handleSubmit(handleFormSubmit)} className=" space-y-6">
 
         <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
           
-          {/* Sección: Información Personal */}
+          {/* Sección: Información General */}
           <div>
             <div className="flex items-center mb-4">
               <div className="bg-blue-100 rounded-full p-2 mr-3">
-                <User className="w-5 h-5 text-blue-600" />
+                <Building className="w-5 h-5 text-blue-600" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-gray-800">Información Personal</h3>
-                <p className="text-sm text-gray-600">Datos básicos del cliente</p>
+                <h3 className="text-lg font-semibold text-gray-800">Información General</h3>
+                <p className="text-sm text-gray-600">Datos básicos de la central de distribución</p>
               </div>
             </div>
 
             <div className="space-y-4">
-              {/* Nombre completo */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Nombre Completo *
-                </label>
-                <input
-                  type="text"
-                  {...register('name', { 
-                    required: 'El nombre es requerido',
-                    minLength: {
-                      value: 2,
-                      message: 'El nombre debe tener al menos 2 caracteres'
-                    }
-                  })}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                  placeholder="Ingrese el nombre completo"
-                  disabled={isLoading}
-                />
-                {errors.name && (
-                  <p className="text-red-500 text-sm mt-2 flex items-center">
-                    <Info className="w-4 h-4 mr-1" />
-                    {errors.name.message}
-                  </p>
-                )}
-              </div>
 
-              {/* Email y Teléfono en la misma fila */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className={`grid grid-cols-1 md:grid-cols-${isEditing ? '1' : '2'} gap-4`}>
+                {/* Nombre */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Nombre *
+                  </label>
+                  <input
+                    type="text"
+                    {...register('name', { 
+                      required: 'El nombre es requerido',
+                      minLength: {
+                        value: 2,
+                        message: 'El nombre debe tener al menos 2 caracteres'
+                      }
+                    })}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                    placeholder="Ingrese el nombre"
+                    disabled={isLoading}
+                  />
+                  {errors.name && (
+                    <p className="text-red-500 text-sm mt-2 flex items-center">
+                      <Info className="w-4 h-4 mr-1" />
+                      {errors.name.message}
+                    </p>
+                  )}
+                </div>
+
+                {/* Tipo de Central - select con las opciones punto de distribucion o bodega central*/}
                 {!isEditing && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Correo Electrónico *
+                      Tipo de Central *
                     </label>
-                    <input
-                      type="email"
-                      {...register('email', { 
-                        required: 'El email es requerido',
-                        pattern: {
-                          value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                          message: 'Email inválido'
-                        }
+                    <select
+                      {...register('center_type', {
+                        required: 'El tipo de central es requerido'
                       })}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                      placeholder="correo@ejemplo.com"
                       disabled={isLoading}
-                    />
-                    {errors.email && (
+                    >
+                      <option value="distribution_point">Punto de Distribución</option>
+                      <option value="main_warehouse">Bodega Central</option>
+                    </select>
+                    {errors.phone && (
                       <p className="text-red-500 text-sm mt-2 flex items-center">
                         <Info className="w-4 h-4 mr-1" />
-                        {errors.email.message}
+                        {errors.phone.message}
                       </p>
                     )}
                   </div>
                 )}
+                
+              </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Teléfono
-                  </label>
-                  <input
-                    type="text"
-                    {...register('phone', {
-                      minLength: {
-                        value: 8,
-                        message: 'El teléfono debe tener al menos 8 caracteres'
-                      }
-                    })}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                    placeholder="Ej: +502 1234-5678"
-                    disabled={isLoading}
-                  />
-                  {errors.phone && (
-                    <p className="text-red-500 text-sm mt-2 flex items-center">
-                      <Info className="w-4 h-4 mr-1" />
-                      {errors.phone.message}
-                    </p>
-                  )}
-                </div>
+              {/* Alcance máximo de los drones */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Alcance máximo de los drones (en kilómetros) *
+                </label>
+                <input
+                  type='number'
+                  {...register('max_drone_range', { 
+                    required: 'El alcance máximo es requerido',
+                    min: {
+                      value: 1,
+                      message: 'El alcance debe ser mayor a 0'
+                    }
+                  })}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                  placeholder="Ej: 100"
+                  disabled={isLoading}
+                />
+                {errors.email && (
+                  <p className="text-red-500 text-sm mt-2 flex items-center">
+                    <Info className="w-4 h-4 mr-1" />
+                    {errors.email.message}
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -173,7 +174,7 @@ export default function CustomerForm({
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-gray-800">Dirección</h3>
-                <p className="text-sm text-gray-600">Ubicación física del cliente</p>
+                <p className="text-sm text-gray-600">Ubicación física de la central de distribución</p>
               </div>
             </div>
 
@@ -191,7 +192,7 @@ export default function CustomerForm({
                   }
                 })}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-none"
-                placeholder="Ingrese la dirección completa del cliente..."
+                placeholder="Ingrese la dirección completa de la central..."
                 disabled={isLoading}
               />
               {errors.address && (
@@ -213,7 +214,7 @@ export default function CustomerForm({
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-gray-800">Coordenadas Geográficas</h3>
-                <p className="text-sm text-gray-600">Ubicación GPS precisa para entregas y servicios</p>
+                <p className="text-sm text-gray-600">Ubicación GPS precisa para pedidos y servicios</p>
               </div>
             </div>
 
@@ -306,7 +307,7 @@ export default function CustomerForm({
             </button>
             <button
               type="submit"
-              form="client-form"
+              form="distribution-center-form"
               className="px-5 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium shadow-lg"
               disabled={isLoading}
             >
@@ -316,7 +317,7 @@ export default function CustomerForm({
                   Guardando...
                 </div>
               ) : (
-                isEditing ? 'Actualizar Cliente' : 'Crear Cliente'
+                isEditing ? 'Actualizar Central' : 'Crear Central'
               )}
             </button>
           </div>

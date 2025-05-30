@@ -52,8 +52,8 @@ export default function Sidebar({ isCollapsed, toggle }) {
           )}
         </NavLink>
 
-        {/*<NavLink
-          to="/powerbi"
+        <NavLink
+          to="/distribution-centers"
           className={({ isActive }) =>
             `flex items-center py-3 px-3 rounded-lg transition-all duration-200 group ${
               isActive 
@@ -73,7 +73,7 @@ export default function Sidebar({ isCollapsed, toggle }) {
               Centrales
             </div>
           )}
-        </NavLink>*/}
+        </NavLink>
 
         <NavLink
           to="customers"

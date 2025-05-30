@@ -9,6 +9,7 @@ import AuthGuard from './components/AuthGuard'
 import Login from "./pages/Login"
 import Users from "./pages/Users"
 import Customers from "./pages/Customers"
+import DistributionCenters from "./pages/DistributionCenters"
 
 function App() {
 
@@ -20,6 +21,7 @@ function App() {
         <Route element={<AuthGuard><Layout /></AuthGuard>}>
           <Route path="/users" element={<Users />} />
           <Route path="/customers" element={<Customers />} />
+          <Route path="/distribution-centers" element={<DistributionCenters />} />
           <Route path="*" element={<div>404 Not Found</div>} />
         </Route>
       </Routes>
