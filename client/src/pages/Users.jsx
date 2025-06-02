@@ -100,8 +100,8 @@ export default function Users() {
     setIsSubmitting(true)
     try {
       let response
-      const {  name, email, password } = formData
-      const user = { full_name: name, email, password }
+      const {  name, ...rest } = formData
+      const user = { full_name: name, ...rest }
 
       if (selectedUser) {
         // Editing existing user
@@ -129,11 +129,6 @@ export default function Users() {
 
   const columns = [
     {
-      header: 'ID',
-      key: 'id',
-      width: 'w-16', // Fixed width for ID
-    },
-    {
       header: 'Nombre',
       key: 'full_name',
       width: 'min-w-32', // Minimum width, can grow
@@ -142,6 +137,16 @@ export default function Users() {
       header: 'Email',
       key: 'email',
       width: 'min-w-48', // Minimum width for email
+    },
+    {
+      header: 'Rol',
+      key: 'role',
+      width: 'w-32', // Fixed width for role
+      render: (user) => (
+        <span className="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-800">
+          {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+        </span>
+      )
     },
     {
       header: 'Estado',

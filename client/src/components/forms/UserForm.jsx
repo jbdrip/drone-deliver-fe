@@ -30,12 +30,14 @@ export default function UserFormModal({
         reset({
           name: user.full_name,
           email: user.email,
+          role: user.role,
         })
       } else {
         reset({
           name: '',
           email: '',
           password: '',
+          role: 'admin'
         })
       }
     }
