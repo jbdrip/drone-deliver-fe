@@ -7,6 +7,7 @@ import Cookies from "js-cookie"
 import { Edit, UserX, UserPlus } from 'lucide-react';
 import { toast } from 'react-toastify'
 import useConfirmDialog from '../components/ConfirmDialog'
+import { useUserData } from '../hooks/useAuth'
 
 export default function Users() {
   const [users, setUsers] = useState([])
@@ -20,7 +21,8 @@ export default function Users() {
   
   const itemsPerPage = 10
 
-  const { showDialog, ConfirmDialogComponent } = useConfirmDialog();
+  const { showDialog, ConfirmDialogComponent } = useConfirmDialog()
+  const { userId } = useUserData()
 
   const fetchUsers = useCallback(async () => {
     setIsLoading(true)
@@ -76,8 +78,7 @@ export default function Users() {
       onConfirm: async () => {
         try {
           // Validate that the deactivated user is not the currently logged-in user
-          const currentUser = JSON.parse(Cookies.get('usuario'))
-          if (currentUser && currentUser.id === user.id)
+          if (userId && userId === user.id)
             return toast.error('No puedes desactivar tu propio usuario.')
 
           const response = await deactivateUser(user.id)

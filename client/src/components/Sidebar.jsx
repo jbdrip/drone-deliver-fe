@@ -1,7 +1,11 @@
 import { NavLink } from 'react-router-dom'
 import { FaBars, FaChartBar, FaUsers, FaShoppingCart, FaUser } from 'react-icons/fa'
+import { useUserData } from '../hooks/useAuth'
 
 export default function Sidebar({ isCollapsed, toggle }) {
+
+  const { userRole } = useUserData()
+
   return (
     <div className={`flex flex-col bg-white shadow-lg transition-all duration-300 relative ${
       isCollapsed ? 'w-20' : 'w-64'
@@ -29,7 +33,10 @@ export default function Sidebar({ isCollapsed, toggle }) {
 
       {/* Navigation */}
       <nav className="flex-1 px-4 py-6 space-y-2">
-        <NavLink
+
+        {userRole === 'admin' && (
+          <>
+            <NavLink
           to="/users"
           className={({ isActive }) =>
             `flex items-center py-3 px-3 rounded-lg transition-all duration-200 group ${
@@ -120,6 +127,34 @@ export default function Sidebar({ isCollapsed, toggle }) {
             </div>
           )}
         </NavLink>
+          </>
+        )}
+
+        {userRole === 'customer' && (
+          <NavLink
+            to="/my-orders"
+            className={({ isActive }) =>
+              `flex items-center py-3 px-3 rounded-lg transition-all duration-200 group ${
+                isActive 
+                  ? 'bg-blue-100 text-blue-700 border-r-4 border-blue-700' 
+                  : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+              }`
+            }
+          >
+            <FaShoppingCart className={`text-xl flex-shrink-0 ${isCollapsed ? 'mx-auto' : ''}`} />
+            {!isCollapsed && (
+              <span className="ml-3 font-medium transition-all duration-200">
+                Mis Pedidos
+              </span>
+            )}
+            {isCollapsed && (
+              <div className="absolute left-16 bg-gray-800 text-white px-2 py-1 rounded text-sm opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50">
+                Mis Pedidos
+              </div>
+            )}
+          </NavLink>
+        )}
+        
       </nav>
 
       {/* Footer */}

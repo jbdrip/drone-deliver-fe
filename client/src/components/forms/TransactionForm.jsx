@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form'
 import { Info, Loader2, BanknoteArrowUp } from 'lucide-react'
 import Modal from '../Modal'
 import Cookies from 'js-cookie'
+import { useUserData } from '../../hooks/useAuth'
 
 export default function TransactionForm({ 
   isOpen, 
@@ -19,17 +20,17 @@ export default function TransactionForm({
     formState: { errors }
   } = useForm()
 
+  const { userId } = useUserData()
+
   const modalTitle = 'Gestión de Créditos'
   const modalSubtitle = 'Complete los datos de la transacción para asignar o desasignar créditos al cliente'
 
   useEffect(() => {
     if (isOpen && customer) {
-      // Get the credited user ID from cookies or any other source
-      const userCookie = Cookies.get('usuario')
       // Reset the form with customer data and default values
       reset({
         customer_id: customer.id,
-        credited_by_user_id: userCookie ? JSON.parse(userCookie).id : 0,
+        credited_by_user_id: userId ?? 0,
         amount: 0, // Default amount to 0
         transaction_type: 'credit' // Default transaction type
       })

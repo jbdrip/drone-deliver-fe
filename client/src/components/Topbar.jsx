@@ -1,33 +1,14 @@
 import { FaUserCircle, FaBars } from 'react-icons/fa'
 import { Menu, MenuItem, MenuItems, MenuButton } from '@headlessui/react'
-import Cookies from 'js-cookie'
 import logo from '../assets/react.svg'
 import { FaSignOutAlt } from 'react-icons/fa'
+import { useUserData } from '../hooks/useAuth'
 
 export default function TopBar({ isCollapsed, toggle }) {
 
-  const handleLogout = () => {
-    Cookies.remove('access_token')
-    Cookies.remove('usuario')
-    window.location.href = '/'
-  }
+  const { userName, userEmail, logout } = useUserData()
 
-  const getUserData = () => {
-    try {
-      const userCookie = Cookies.get('usuario')
-      if (userCookie) {
-        return JSON.parse(userCookie)
-      }
-      return null
-    } catch (error) {
-      console.error('Error al parsear datos del usuario:', error)
-      return null
-    }
-  }
-
-  const userData = getUserData()
-  const userName = userData?.full_name  || 'Usuario'
-  const userEmail = userData?.email || '- - - - - -'
+  const handleLogout = () => logout()
 
   return (
     <div className="flex justify-between items-center bg-blue-600 text-white px-4 py-3 shadow-md relative z-30">

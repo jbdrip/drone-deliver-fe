@@ -3,7 +3,7 @@ import { ToastContainer } from 'react-toastify'
 
 // Components
 import Layout from './components/Layout'
-import AuthGuard from './components/AuthGuard'
+import AuthGuard from './components/auth/AuthGuard'
 
 // Pages
 import Login from "./pages/Login"
