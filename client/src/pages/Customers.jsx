@@ -3,9 +3,11 @@ import DataTable from '../components/DataTable'
 import CustomerForm from '../components/forms/CustomerForm'
 import Tooltip from '../components/Tooltip'
 import { getCustomers, createCustomer, updateCustomer, deactivateCustomer } from '../services/customer.service'
-import { CirclePlus, Edit, Trash } from 'lucide-react';
+import { CirclePlus, CreditCard, Edit, Trash } from 'lucide-react';
 import { toast } from 'react-toastify'
 import useConfirmDialog from '../components/ConfirmDialog'
+import TransactionForm from '../components/forms/TransactionForm'
+import { createTransaction } from '../services/transaction.service'
 
 
 export default function Customers() {
@@ -15,7 +17,8 @@ export default function Customers() {
   const [currentPage, setCurrentPage] = useState(1)
   const [searchTerm, setSearchTerm] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isCustomerModalOpen, setIsCustomerOpen] = useState(false)
+  const [isTransactionModalOpen, setIsTransactionOpen] = useState(false)
   const [selectedCustomer, setSelectedCustomer] = useState(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   
@@ -59,12 +62,17 @@ export default function Customers() {
 
   const handleCreateCustomer = () => {
     setSelectedCustomer(null)
-    setIsModalOpen(true)
+    setIsCustomerOpen(true)
   }
 
   const handleEditCustomer = user => {
     setSelectedCustomer(user)
-    setIsModalOpen(true)
+    setIsCustomerOpen(true)
+  }
+
+  const handleAssignCredits = async (customer) => {
+    setSelectedCustomer(customer)
+    setIsTransactionOpen(true)
   }
 
   const handleDeactivateCustomer = async (customer) => {
@@ -92,7 +100,7 @@ export default function Customers() {
     });
   }
 
-  const handleFormSubmit = async formData => {
+  const handleCustomerFormSubmit = async formData => {
     setIsSubmitting(true)
     try {
       let response
@@ -108,7 +116,7 @@ export default function Customers() {
       }
 
       if (response.status === 'success') {
-        setIsModalOpen(false)
+        setIsCustomerOpen(false)
         fetchCustomers() // Refresh the list
         toast.success(`Cliente ${selectedCustomer ? 'actualizado' : 'creado'} exitosamente.`)
       } else {
@@ -118,6 +126,27 @@ export default function Customers() {
     } catch (error) {
       console.error('Error submitting form:', error)
       toast.error(`Error al ${selectedCustomer ? 'actualizar' : 'crear'} cliente: ${error.message || 'Error desconocido'}`)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleTransactionFormSubmit = async formData => {
+    setIsSubmitting(true)
+    try {
+      const response = await createTransaction(formData)
+      console.log('Transaction response:', response)
+      if (response.status === 'success') {
+        setIsTransactionOpen(false)
+        fetchCustomers() // Refresh the list
+        toast.success(response.message || 'Transacción realizada exitosamente.')
+      } else {
+        console.error('Error submitting transaction:', response.message)
+        toast.error(`Error al crear transacción: ${response.message}`)
+      }
+    } catch (error) {
+      console.error('Error submitting transaction:', error)
+      toast.error(`Error al crear transacción: ${error.message || 'Error desconocido'}`)
     } finally {
       setIsSubmitting(false)
     }
@@ -170,20 +199,6 @@ export default function Customers() {
       )
     },
     {
-      header: 'Estado',
-      key: 'is_active',
-      width: 'w-24', // Fixed width for status
-      render: (user) => (
-        <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap ${
-          user.is_active 
-            ? 'bg-green-100 text-green-800' 
-            : 'bg-red-100 text-red-800'
-        }`}>
-          {user.is_active ? 'ACTIVO' : 'INACTIVO'}
-        </span>
-      )
-    },
-    {
       header: 'Fecha de Creación',
       key: 'created_at',
       width: 'w-32', // Fixed width for date
@@ -208,6 +223,17 @@ export default function Customers() {
               <Edit size={16} />
             </button>
           </Tooltip>
+          {user.is_active && (
+            <Tooltip text="Gestionar créditos">
+              <button
+                onClick={() => handleAssignCredits(user)}
+                className="p-2 text-green-600 bg-green-50 rounded-lg hover:bg-green-100 hover:text-green-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50"
+                aria-label="Gestionar créditos"
+              >
+                <CreditCard size={16} />
+              </button>
+            </Tooltip>
+          )}
           {user.is_active && (
             <Tooltip text="Eliminar cliente">
               <button
@@ -255,9 +281,17 @@ export default function Customers() {
       </div>
 
       <CustomerForm
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSubmit={handleFormSubmit}
+        isOpen={isCustomerModalOpen}
+        onClose={() => setIsCustomerOpen(false)}
+        onSubmit={handleCustomerFormSubmit}
+        customer={selectedCustomer}
+        isLoading={isSubmitting}
+      />
+
+      <TransactionForm
+        isOpen={isTransactionModalOpen}
+        onClose={() => setIsTransactionOpen(false)}
+        onSubmit={handleTransactionFormSubmit}
         customer={selectedCustomer}
         isLoading={isSubmitting}
       />
