@@ -7,10 +7,11 @@ import AuthGuard from './components/auth/AuthGuard'
 
 // Pages
 import Login from "./pages/Login"
-import Users from "./pages/Users"
-import Customers from "./pages/Customers"
-import DistributionCenters from "./pages/DistributionCenters"
-import Products from "./pages/Products"
+import Register from "./pages/Register"
+import Users from "./pages/admin/Users"
+import Customers from "./pages/admin/Customers"
+import DistributionCenters from "./pages/admin/DistributionCenters"
+import Products from "./pages/admin/Products"
 
 function App() {
 
@@ -19,11 +20,18 @@ function App() {
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        
+        {/* Protected Routes */}
         <Route element={<AuthGuard><Layout /></AuthGuard>}>
-          <Route path="/users" element={<Users />} />
-          <Route path="/customers" element={<Customers />} />
-          <Route path="/distribution-centers" element={<DistributionCenters />} />
-          <Route path="/products" element={<Products />} />
+          <Route path="/admin/users" element={<Users />} />
+          <Route path="/admin/customers" element={<Customers />} />
+          <Route path="/admin/distribution-centers" element={<DistributionCenters />} />
+          <Route path="/admin/products" element={<Products />} />
+          <Route path="/admin/orders" element={<div>Orders Page</div>} />
+          <Route path="/customer/orders" element={<div>Customer Orders Page</div>} />
+          
+          {/* Catch-all for 404 */}
           <Route path="*" element={<div>404 Not Found</div>} />
         </Route>
       </Routes>

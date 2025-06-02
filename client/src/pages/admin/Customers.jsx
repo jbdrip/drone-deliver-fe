@@ -1,13 +1,13 @@
 import { useState, useEffect, useCallback } from 'react'
-import DataTable from '../components/DataTable'
-import CustomerForm from '../components/forms/CustomerForm'
-import Tooltip from '../components/Tooltip'
-import { getCustomers, createCustomer, updateCustomer, deactivateCustomer } from '../services/customer.service'
+import DataTable from '../../components/DataTable'
+import CustomerForm from '../../components/forms/CustomerForm'
+import Tooltip from '../../components/Tooltip'
+import { getCustomers, createCustomer, updateCustomer, deactivateCustomer } from '../../services/customer.service'
 import { CirclePlus, CreditCard, Edit, Trash } from 'lucide-react';
 import { toast } from 'react-toastify'
-import useConfirmDialog from '../components/ConfirmDialog'
-import TransactionForm from '../components/forms/TransactionForm'
-import { createTransaction } from '../services/transaction.service'
+import useConfirmDialog from '../../components/ConfirmDialog'
+import TransactionForm from '../../components/forms/TransactionForm'
+import { createTransaction } from '../../services/transaction.service'
 
 
 export default function Customers() {
@@ -256,13 +256,7 @@ export default function Customers() {
       {/* Header - Fixed height */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6 flex-shrink-0">
         <h1 className="text-2xl font-bold text-gray-900">Clientes</h1>
-        <button
-          onClick={handleCreateCustomer}
-          className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors whitespace-nowrap"
-        >
-          <CirclePlus size={16} />
-          <span>Crear Cliente</span>
-        </button>
+
       </div>
 
       {/* Table Container - Flexible height */}

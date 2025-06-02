@@ -7,3 +7,11 @@ export const authLogin = async user => {
     body: JSON.stringify(user)
   })
 }
+
+export const authRegister = async user => {
+  return await consumeService({
+    url: 'auth/register',
+    method: 'POST',
+    body: JSON.stringify(user)
+  })
+}

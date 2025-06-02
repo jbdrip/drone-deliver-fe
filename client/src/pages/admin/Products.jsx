@@ -1,11 +1,11 @@
 import { useState, useEffect, useCallback } from 'react'
-import DataTable from '../components/DataTable'
-import ProductForm from '../components/forms/ProductForm'
-import Tooltip from '../components/Tooltip'
-import { getProducts, createProduct, updateProduct, deactivateProduct } from '../services/product.service'
+import DataTable from '../../components/DataTable'
+import ProductForm from '../../components/forms/ProductForm'
+import Tooltip from '../../components/Tooltip'
+import { getProducts, createProduct, updateProduct, deactivateProduct } from '../../services/product.service'
 import { Edit, Trash, CirclePlus } from 'lucide-react';
 import { toast } from 'react-toastify'
-import useConfirmDialog from '../components/ConfirmDialog'
+import useConfirmDialog from '../../components/ConfirmDialog'
 
 
 export default function Products() {
