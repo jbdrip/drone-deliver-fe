@@ -12,6 +12,14 @@ import { getProducts } from '../../services/product.service'
 import { useUserData } from '../../hooks/useAuth'
 
 
+const statusOptions = [
+  { value: 'pending', label: 'Pendiente', color: 'yellow' },
+  { value: 'confirmed', label: 'Confirmado', color: 'blue' },
+  { value: 'in_transit', label: 'En Tránsito', color: 'gray' },
+  { value: 'delivered', label: 'Entregado', color: 'green' },
+  { value: 'cancelled', label: 'Cancelado', color: 'red' }
+]
+
 export default function Orders() {
 
   const [orders, setOrders] = useState([])
@@ -174,47 +182,80 @@ export default function Orders() {
 
   const columns = [
     {
-      header: 'Nombre',
-      key: 'full_name',
-      width: 'min-w-32', // Minimum width, can grow
+      header: 'ID Orden',
+      key: 'id',
+      width: 'w-24', // Fixed width for ID
     },
     {
-      header: 'Email',
-      key: 'email',
-      width: 'min-w-48', // Minimum width for email
+      header: 'Central Asignada',
+      key: 'assigned_distribution_center_name',
+      width: 'min-w-48', // Minimum width for assigned distribution center
     },
     {
-      header: 'Teléfono',
-      key: 'phone',
-      width: 'min-w-32', // Minimum width for phone
+      header: 'Producto',
+      key: 'product_name',
+      width: 'min-w-48', // Minimum width for product name
+    },
+    {
+      header: 'Distancia Total (km)',
+      key: 'total_distance',
+      width: 'w-32', // Fixed width for total distance
       render: (user) => (
         <span className="whitespace-nowrap">
-          {user.phone || 'No disponible'}
+          {user.total_distance ? user.total_distance.toLocaleString('es-ES') : '0'} km
         </span>
       )
     },
     {
-      header: 'Dirección',
-      key: 'address',
-      width: 'min-w-48', // Minimum width for address
-    },
-    {
-      header: 'Latitud',
-      key: 'latitude',
-      width: 'w-32', // Fixed width for latitude
-    },
-    {
-      header: 'Longitud',
-      key: 'longitude',
-      width: 'w-32', // Fixed width for longitude
-    },
-    {
-      header: 'Créditos',
-      key: 'credit_balance',
-      width: 'w-24', // Fixed width for credits
+      header: 'Costo Producto',
+      key: 'product_cost',
+      width: 'w-32', // Fixed width for product cost
       render: (user) => (
         <span className="whitespace-nowrap">
-          Q {user.credit_balance ? user.credit_balance.toLocaleString('es-ES') : '0'}
+          Q {user.product_cost ? user.product_cost.toLocaleString('es-ES') : '0'}
+        </span>
+      )
+    },
+    {
+      header: 'Costo Servicio',
+      key: 'service_cost',
+      width: 'w-32', // Fixed width for service cost
+      render: (user) => (
+        <span className="whitespace-nowrap">
+          Q {user.service_cost ? user.service_cost.toLocaleString('es-ES') : '0'}
+        </span>
+      )
+    },
+    {
+      header: 'Costo Total',
+      key: 'total_cost',
+      width: 'w-32', // Fixed width for total cost
+      render: (user) => (
+        <span className="whitespace-nowrap">
+          Q {user.total_cost ? user.total_cost.toLocaleString('es-ES') : '0'}
+        </span>
+      )
+    },
+    {
+      header: 'Estado',
+      key: 'status',
+      width: 'w-24', // Fixed width for status
+      render: (user) => {
+        const status = statusOptions.find(s => s.value === user.status_name)
+        return (
+          <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap bg-${status.color}-100 text-${status.color}-800`}>
+            {status.label}
+          </span>
+        )
+      }
+    },
+    {
+      header: 'Tiempo Estimado (min)',
+      key: 'estimated_delivery_time',
+      width: 'w-32', // Fixed width for estimated delivery time
+      render: (user) => (
+        <span className="whitespace-nowrap">
+          {user.estimated_delivery_time ? user.estimated_delivery_time.toLocaleString('es-ES') : '0'} min
         </span>
       )
     },
@@ -232,34 +273,36 @@ export default function Orders() {
       header: 'Acciones',
       key: 'actions',
       width: 'w-40', // Fixed width for actions
-      render: (user) => (
+      render: (order) => (
         <div className="flex space-x-2 whitespace-nowrap">
-          <Tooltip text="Editar cliente">
-            <button
-              onClick={() => handleEditOrder(user)}
-              className="p-2 text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 hover:text-blue-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
-              aria-label="Editar cliente"
-            >
-              <Edit size={16} />
-            </button>
-          </Tooltip>
-          {user.is_active && (
-            <Tooltip text="Gestionar créditos">
-              <button
-                onClick={() => handleAssignCredits(user)}
-                className="p-2 text-green-600 bg-green-50 rounded-lg hover:bg-green-100 hover:text-green-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50"
-                aria-label="Gestionar créditos"
-              >
-                <CreditCard size={16} />
-              </button>
-            </Tooltip>
+          {order.status_name === 'pending' && (
+            <>
+              <Tooltip text="Confirmar pedido">
+                <button
+                  onClick={() => handleAssignCredits(order)}
+                  className="p-2 text-green-600 bg-green-50 rounded-lg hover:bg-green-100 hover:text-green-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50"
+                  aria-label="Confirmar pedido"
+                >
+                  <CirclePlus size={16} />
+                </button>
+              </Tooltip>
+              <Tooltip text="Editar pedido">
+                <button
+                  onClick={() => handleEditOrder(order)}
+                  className="p-2 text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 hover:text-blue-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+                  aria-label="Editar pedido"
+                >
+                  <Edit size={16} />
+                </button>
+              </Tooltip>
+            </>
           )}
-          {user.is_active && (
-            <Tooltip text="Eliminar cliente">
+          {(order.status_name === 'pending' && order.status_name === 'confirmed') && (
+            <Tooltip text="Eliminar pedido">
               <button
-                onClick={() => handleDeactivateOrder(user)}
+                onClick={() => handleDeactivateOrder(order)}
                 className="p-2 text-red-600 bg-red-50 rounded-lg hover:bg-red-100 hover:text-red-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
-                aria-label="Eliminar cliente"
+                aria-label="Eliminar pedido"
               >
                 <Trash size={16} />
               </button>
