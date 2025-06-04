@@ -24,10 +24,8 @@ export default function DataTable({
   }, [searchTerm])
 
   useEffect(() => {
-    if (onSearch) {
-      onSearch(debouncedSearchTerm)
-    }
-  }, [debouncedSearchTerm, onSearch])
+  onSearch?.(debouncedSearchTerm)
+}, [debouncedSearchTerm])
 
   const totalPages = Math.ceil(totalItems / itemsPerPage)
   const startItem = (currentPage - 1) * itemsPerPage + 1

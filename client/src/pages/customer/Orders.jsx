@@ -1,16 +1,14 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import DataTable from '../../components/DataTable'
 import OrderForm from '../../components/forms/OrderForm'
 import Tooltip from '../../components/Tooltip'
 import { getOrders, createOrder, updateOrder, deactivateOrder } from '../../services/order.service'
-import { CirclePlus, CreditCard, Edit, Trash } from 'lucide-react';
+import { CirclePlus, Edit, Trash } from 'lucide-react';
 import { toast } from 'react-toastify'
 import useConfirmDialog from '../../components/ConfirmDialog'
 import TransactionForm from '../../components/forms/TransactionForm'
 import { createTransaction } from '../../services/transaction.service'
 import { getProducts } from '../../services/product.service'
-import { useUserData } from '../../hooks/useAuth'
-
 
 const statusOptions = [
   { value: 'pending', label: 'Pendiente', color: 'yellow' },
@@ -34,14 +32,19 @@ export default function Orders() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   
   const itemsPerPage = 10
+  
+  // Ref para evitar múltiples llamadas simultáneas
+  const fetchingRef = useRef(false)
 
   const { showDialog, ConfirmDialogComponent } = useConfirmDialog()
-  const { userId } = useUserData()
 
-  const fetchOrders = useCallback(async () => {
+  const fetchOrders = async (page = currentPage, search = searchTerm) => {
+    // Prevenir múltiples llamadas simultáneas
+    if (fetchingRef.current) return
+    fetchingRef.current = true
     setIsLoading(true)
     try {
-      const response = await getOrders(currentPage, itemsPerPage, searchTerm)
+      const response = await getOrders(page, itemsPerPage, search)
       if (response.status === 'success' && response.data) {
         setOrders(response.data.orders || [])
         setTotalOrders(response.data.total || 0)
@@ -56,8 +59,9 @@ export default function Orders() {
       setTotalOrders(0)
     } finally {
       setIsLoading(false)
+      fetchingRef.current = false
     }
-  }, [currentPage, searchTerm])
+  }
 
   const fetchProducts = useCallback(async () => {
     try {
@@ -74,16 +78,26 @@ export default function Orders() {
     }
   }, [])
 
+  // Efecto para cargar órdenes inicialmente
   useEffect(() => {
     fetchOrders()
+  }, []) // Solo se ejecuta una vez al montar el componente
+
+  // Efecto separado para cuando cambian la página o búsqueda
+  useEffect(() => {
+    fetchOrders(currentPage, searchTerm)
+  }, [currentPage, searchTerm])
+
+  // Efecto para cargar productos
+  useEffect(() => {
     fetchProducts()
-  }, [fetchOrders, fetchProducts])
+  }, [fetchProducts])
 
   const handlePageChange = (newPage) => {
     setCurrentPage(newPage)
   }
 
-  const handleSearch = search => {
+  const handleSearch = (search) => {
     setSearchTerm(search)
     setCurrentPage(1) // Reset to first page when searching
   }
@@ -93,7 +107,7 @@ export default function Orders() {
     setIsOrderOpen(true)
   }
 
-  const handleEditOrder = user => {
+  const handleEditOrder = (user) => {
     setSelectedOrder(user)
     setIsOrderOpen(true)
   }
@@ -128,7 +142,7 @@ export default function Orders() {
     });
   }
 
-  const handleOrderFormSubmit = async formData => {
+  const handleOrderFormSubmit = async (formData) => {
     setIsSubmitting(true)
     try {
       let response
@@ -141,9 +155,6 @@ export default function Orders() {
         // Creating new order
         response = await createOrder(order)
       }
-
-      console.log('Order response:', response)
-
       if (response.status === 'success') {
         setIsOrderOpen(false)
         fetchOrders() // Refresh the list
@@ -160,7 +171,7 @@ export default function Orders() {
     }
   }
 
-  const handleTransactionFormSubmit = async formData => {
+  const handleTransactionFormSubmit = async (formData) => {
     setIsSubmitting(true)
     try {
       const response = await createTransaction(formData)
@@ -315,7 +326,6 @@ export default function Orders() {
 
   return (
     <div className="h-full flex flex-col">
-
       {/* Header - Fixed height */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6 flex-shrink-0">
         <h1 className="text-2xl font-bold text-gray-900">Mis Pedidos</h1>
@@ -338,7 +348,7 @@ export default function Orders() {
           currentPage={currentPage}
           onPageChange={handlePageChange}
           onSearch={handleSearch}
-          searchPlaceholder="Buscar clientes por nombre, email, teléfono o dirección..."
+          searchPlaceholder="Buscar pedidos por cliente, producto, central o estado..."
           isLoading={isLoading}
         />
       </div>
