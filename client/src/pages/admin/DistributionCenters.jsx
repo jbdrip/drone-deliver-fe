@@ -27,8 +27,6 @@ export default function DistributionCenters() {
     setIsLoading(true)
     try {
       const response = await getDistributionCenters(currentPage, itemsPerPage, searchTerm)
-
-      console.log('Distribution Centers Response:', response)
       if (response.status === 'success' && response.data) {
         setDistributionCenters(response.data.distribution_centers || [])
         setTotalDistributionCenters(response.data.total || 0)
@@ -97,7 +95,8 @@ export default function DistributionCenters() {
   const handleFormSubmit = async formData => {
     // Validate if a main distribution center already exists based on the form data and the current list
     if (formData.center_type === 'main_warehouse' && distributionCenters.some(dc => dc.center_type === 'main_warehouse')) {
-      return toast.error('Ya existe una central de distribución principal. Solo puede haber una.')
+      if (!selectedDistributionCenter || selectedDistributionCenter.center_type !== 'main_warehouse')
+        return toast.error('Ya existe una central de distribución principal. Solo puede haber una.')
     }
 
     setIsSubmitting(true)

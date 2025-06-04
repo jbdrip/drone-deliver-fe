@@ -12,6 +12,7 @@ import Users from "./pages/admin/Users"
 import Customers from "./pages/admin/Customers"
 import DistributionCenters from "./pages/admin/DistributionCenters"
 import Products from "./pages/admin/Products"
+import Orders from "./pages/customer/Orders"
 
 function App() {
 
@@ -29,7 +30,7 @@ function App() {
           <Route path="/admin/distribution-centers" element={<DistributionCenters />} />
           <Route path="/admin/products" element={<Products />} />
           <Route path="/admin/orders" element={<div>Orders Page</div>} />
-          <Route path="/customer/orders" element={<div>Customer Orders Page</div>} />
+          <Route path="/customer/orders" element={<Orders/>} />
           
           {/* Catch-all for 404 */}
           <Route path="*" element={<div>404 Not Found</div>} />

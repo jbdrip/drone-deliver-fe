@@ -3,7 +3,6 @@ import DataTable from '../../components/DataTable'
 import UserFormModal from '../../components/forms/UserForm'
 import Tooltip from '../../components/Tooltip'
 import { getUsers, createUser, updateUser, deactivateUser } from '../../services/user.service'
-import Cookies from "js-cookie"
 import { Edit, UserX, UserPlus } from 'lucide-react';
 import { toast } from 'react-toastify'
 import useConfirmDialog from '../../components/ConfirmDialog'

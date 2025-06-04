@@ -3,7 +3,7 @@ import DataTable from '../../components/DataTable'
 import CustomerForm from '../../components/forms/CustomerForm'
 import Tooltip from '../../components/Tooltip'
 import { getCustomers, createCustomer, updateCustomer, deactivateCustomer } from '../../services/customer.service'
-import { CirclePlus, CreditCard, Edit, Trash } from 'lucide-react';
+import { CreditCard, Edit, Trash } from 'lucide-react';
 import { toast } from 'react-toastify'
 import useConfirmDialog from '../../components/ConfirmDialog'
 import TransactionForm from '../../components/forms/TransactionForm'
@@ -135,7 +135,6 @@ export default function Customers() {
     setIsSubmitting(true)
     try {
       const response = await createTransaction(formData)
-      console.log('Transaction response:', response)
       if (response.status === 'success') {
         setIsTransactionOpen(false)
         fetchCustomers() // Refresh the list

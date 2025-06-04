@@ -27,7 +27,6 @@ export default function Login() {
         username: data.email, 
         password: data.password 
       })
-      console.log("Login response:", loginRes)
       
       if(loginRes && loginRes.status === 'success') {
         // Guardar el token de acceso y al usuario en una cookie
