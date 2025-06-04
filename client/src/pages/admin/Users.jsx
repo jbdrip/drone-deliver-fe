@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import DataTable from '../../components/DataTable'
 import UserFormModal from '../../components/forms/UserForm'
 import Tooltip from '../../components/Tooltip'
@@ -20,13 +20,19 @@ export default function Users() {
   
   const itemsPerPage = 10
 
+  // Ref para evitar múltiples llamadas simultáneas
+  const fetchingRef = useRef(false)
+
   const { showDialog, ConfirmDialogComponent } = useConfirmDialog()
   const { userId } = useUserData()
 
-  const fetchUsers = useCallback(async () => {
+  const fetchUsers = async (page = currentPage, search = searchTerm) => {
+    // Prevenir múltiples llamadas simultáneas
+    if (fetchingRef.current) return
+    fetchingRef.current = true
     setIsLoading(true)
     try {
-      const response = await getUsers(currentPage, itemsPerPage, searchTerm)
+      const response = await getUsers(page, itemsPerPage, search)
       if (response.status === 'success' && response.data) {
         setUsers(response.data.users || [])
         setTotalUsers(response.data.total || 0)
@@ -41,12 +47,19 @@ export default function Users() {
       setTotalUsers(0)
     } finally {
       setIsLoading(false)
+      fetchingRef.current = false
     }
-  }, [currentPage, searchTerm])
+  }
 
+  // Efecto para cargar los usuarios inicialmente
   useEffect(() => {
     fetchUsers()
-  }, [fetchUsers])
+  }, []) // Solo se ejecuta una vez al montar el componente
+
+  // Efecto separado para cuando cambian la página o búsqueda
+  useEffect(() => {
+    fetchUsers(currentPage, searchTerm)
+  }, [currentPage, searchTerm])
 
   const handlePageChange = (newPage) => {
     setCurrentPage(newPage)

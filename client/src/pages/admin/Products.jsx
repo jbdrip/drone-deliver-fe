@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import DataTable from '../../components/DataTable'
 import ProductForm from '../../components/forms/ProductForm'
 import Tooltip from '../../components/Tooltip'
@@ -21,12 +21,18 @@ export default function Products() {
   
   const itemsPerPage = 10
 
+  // Ref para evitar múltiples llamadas simultáneas
+  const fetchingRef = useRef(false)
+
   const { showDialog, ConfirmDialogComponent } = useConfirmDialog()
 
-  const fetchProducts = useCallback(async () => {
+  const fetchProducts = async (page = currentPage, search = searchTerm) => {
+    // Prevenir múltiples llamadas simultáneas
+    if (fetchingRef.current) return
+    fetchingRef.current = true
     setIsLoading(true)
     try {
-      const response = await getProducts(currentPage, itemsPerPage, searchTerm)
+      const response = await getProducts(page, itemsPerPage, search)
       if (response.status === 'success' && response.data) {
         setProducts(response.data.products || [])
         setTotalProducts(response.data.total || 0)
@@ -41,12 +47,19 @@ export default function Products() {
       setTotalProducts(0)
     } finally {
       setIsLoading(false)
+      fetchingRef.current = false
     }
-  }, [currentPage, searchTerm])
+  }
 
+  // Efecto para cargar los productos inicialmente
   useEffect(() => {
     fetchProducts()
-  }, [fetchProducts])
+  }, []) // Solo se ejecuta una vez al montar el componente
+
+  // Efecto separado para cuando cambian la página o búsqueda
+  useEffect(() => {
+    fetchProducts(currentPage, searchTerm)
+  }, [currentPage, searchTerm])
 
   const handlePageChange = (newPage) => {
     setCurrentPage(newPage)

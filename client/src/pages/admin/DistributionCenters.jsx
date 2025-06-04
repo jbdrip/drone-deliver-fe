@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import DataTable from '../../components/DataTable'
 import DistributionCenterForm from '../../components/forms/DistributionCenterForm'
 import Tooltip from '../../components/Tooltip'
@@ -21,12 +21,18 @@ export default function DistributionCenters() {
   
   const itemsPerPage = 10
 
+  // Ref para evitar múltiples llamadas simultáneas
+  const fetchingRef = useRef(false)
+
   const { showDialog, ConfirmDialogComponent } = useConfirmDialog()
 
-  const fetchDistributionCenters = useCallback(async () => {
+  const fetchDistributionCenters = async (page = currentPage, search = searchTerm) => {
+    // Prevenir múltiples llamadas simultáneas
+    if (fetchingRef.current) return
+    fetchingRef.current = true
     setIsLoading(true)
     try {
-      const response = await getDistributionCenters(currentPage, itemsPerPage, searchTerm)
+      const response = await getDistributionCenters(page, itemsPerPage, search)
       if (response.status === 'success' && response.data) {
         setDistributionCenters(response.data.distribution_centers || [])
         setTotalDistributionCenters(response.data.total || 0)
@@ -41,12 +47,19 @@ export default function DistributionCenters() {
       setTotalDistributionCenters(0)
     } finally {
       setIsLoading(false)
+      fetchingRef.current = false
     }
-  }, [currentPage, searchTerm])
+  }
 
+  // Efecto para cargar las centrales de distribucion inicialmente
   useEffect(() => {
     fetchDistributionCenters()
-  }, [fetchDistributionCenters])
+  }, []) // Solo se ejecuta una vez al montar el componente
+
+  // Efecto separado para cuando cambian la página o búsqueda
+  useEffect(() => {
+    fetchDistributionCenters(currentPage, searchTerm)
+  }, [currentPage, searchTerm])
 
   const handlePageChange = (newPage) => {
     setCurrentPage(newPage)

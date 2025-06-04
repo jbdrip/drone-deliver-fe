@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import DataTable from '../../components/DataTable'
 import CustomerForm from '../../components/forms/CustomerForm'
 import Tooltip from '../../components/Tooltip'
@@ -24,12 +24,18 @@ export default function Customers() {
   
   const itemsPerPage = 10
 
+  // Ref para evitar múltiples llamadas simultáneas
+  const fetchingRef = useRef(false)
+
   const { showDialog, ConfirmDialogComponent } = useConfirmDialog()
 
-  const fetchCustomers = useCallback(async () => {
+  const fetchCustomers = async (page = currentPage, search = searchTerm) => {
+    // Prevenir múltiples llamadas simultáneas
+    if (fetchingRef.current) return
+    fetchingRef.current = true
     setIsLoading(true)
     try {
-      const response = await getCustomers(currentPage, itemsPerPage, searchTerm)
+      const response = await getCustomers(page, itemsPerPage, search)
       if (response.status === 'success' && response.data) {
         setCustomers(response.data.customers || [])
         setTotalCustomers(response.data.total || 0)
@@ -44,12 +50,18 @@ export default function Customers() {
       setTotalCustomers(0)
     } finally {
       setIsLoading(false)
+      fetchingRef.current = false
     }
-  }, [currentPage, searchTerm])
-
+  }
+  // Efecto para cargar los clientes inicialmente
   useEffect(() => {
     fetchCustomers()
-  }, [fetchCustomers])
+  }, []) // Solo se ejecuta una vez al montar el componente
+
+  // Efecto separado para cuando cambian la página o búsqueda
+  useEffect(() => {
+    fetchCustomers(currentPage, searchTerm)
+  }, [currentPage, searchTerm])
 
   const handlePageChange = (newPage) => {
     setCurrentPage(newPage)
@@ -58,11 +70,6 @@ export default function Customers() {
   const handleSearch = search => {
     setSearchTerm(search)
     setCurrentPage(1) // Reset to first page when searching
-  }
-
-  const handleCreateCustomer = () => {
-    setSelectedCustomer(null)
-    setIsCustomerOpen(true)
   }
 
   const handleEditCustomer = user => {
