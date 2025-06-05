@@ -4,7 +4,7 @@ import OrderForm from '../../components/forms/OrderForm'
 import OrderSummary from '../../components/pages/orders/OrderSummary'
 import RoutePreview from '../../components/pages/orders/RoutePreview'
 import Tooltip from '../../components/Tooltip'
-import { getOrders, createOrder, updateOrder, deactivateOrder, confirmOrder } from '../../services/order.service'
+import { getOrders, createOrder, updateOrder, cancelOrder, confirmOrder } from '../../services/order.service'
 import { CirclePlus, Edit, Route, Trash } from 'lucide-react';
 import { toast } from 'react-toastify'
 import useConfirmDialog from '../../components/ConfirmDialog'
@@ -156,26 +156,26 @@ export default function Orders() {
     });
   }
 
-  const handleDeactivateOrder = async (order) => {
+  const handleCancelOrder = async (order) => {
     showDialog({
-      title: "Eliminar Cliente",
-      message: `¿Estás seguro de que deseas eliminar al cliente "${order.full_name}"?\n Una vez eliminado, no podrá recuperar sus datos.`,
-      confirmText: "Eliminar",
-      cancelText: "Cancelar",
+      title: "Cancelar Pedido",
+      message: `¿Estás seguro de que deseas cancelar el pedido: "${order.id}"?\n Una vez cancelado no podrás realizar cambios.`,
+      confirmText: "Cancelar Pedido",
+      cancelText: "Cerrar",
       type: "danger",
       onConfirm: async () => {
         try {
-          const response = await deactivateOrder(order.id)
+          const response = await cancelOrder(order.id, { cancellation_reason: 'Pedido cancelado por el cliente' })
           if (response.status === 'success') {
             fetchOrders() // Refresh the list
-            toast.success(`Cliente "${order.full_name}" eliminado exitosamente.`)
+            toast.success(response.message || `Orden "${order.id}" eliminado exitosamente.`)
           } else {
-            console.error('Error deleting order:', response.message)
-            toast.error(`Error al eliminar cliente: ${response.message}`)
+            console.error('Error cancelling order:', response.detail)
+            toast.error(`Error al cancelar orden: ${response.detail}`)
           }
         } catch (error) {
-          console.error('Error deleting order:', error)
-          toast.error('Error al eliminar cliente')
+          console.error('Error cancelling order:', error)
+          toast.error('Error al cancelar pedido')
         }
       }
     });
@@ -328,7 +328,7 @@ export default function Orders() {
               </Tooltip>
               <Tooltip text="Cancelar pedido">
                 <button
-                  onClick={() => handleDeactivateOrder(order)}
+                  onClick={() => handleCancelOrder(order)}
                   className="p-2 text-red-600 bg-red-50 rounded-lg hover:bg-red-100 hover:text-red-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
                   aria-label="Cancelar pedido"
                 >

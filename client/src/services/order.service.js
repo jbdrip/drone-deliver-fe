@@ -36,9 +36,10 @@ export const confirmOrder = async (id) => {
   })
 }
 
-export const deactivateOrder = async (id) => {
+export const cancelOrder = async (id, orderData) => {
   return await consumeService({
-    url: `orders/${id}/deactivate`,
-    method: 'PATCH'
+    url: `orders/${id}/cancel`,
+    method: 'PATCH',
+    body: JSON.stringify(orderData)
   })
 }
