@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import DataTable from '../../components/DataTable'
 import OrderForm from '../../components/forms/OrderForm'
+import OrderSummary from '../../components/pages/orders/OrderSummary'
 import Tooltip from '../../components/Tooltip'
 import { getOrders, createOrder, updateOrder, deactivateOrder } from '../../services/order.service'
 import { CirclePlus, Edit, Trash } from 'lucide-react';
@@ -157,8 +158,24 @@ export default function Orders() {
       }
       if (response.status === 'success') {
         setIsOrderOpen(false)
+        toast.success(response.message)
         fetchOrders() // Refresh the list
-        toast.success(`Orden ${selectedOrder ? 'actualizada' : 'creada'} exitosamente.`)
+        showDialog({
+          title: 'Confirmar Pedido',
+          message: (
+            <div>
+              <p className="mb-4"><b>{`¡Pedido ${selectedOrder ? 'actualizado' : 'creado'} exitosamente!`}</b></p>
+              <OrderSummary orderData={response.data} />
+            </div>
+          ),
+          confirmText: 'Confirmar Pedido',
+          cancelText: 'Cancelar',
+          type: 'info',
+          width: 'max-w-2xl',
+          onConfirm: () => {
+            setSelectedOrder(null)
+          }
+        })
       } else {
         console.error('Error submitting form:', response.detail)
         toast.error(response.detail)

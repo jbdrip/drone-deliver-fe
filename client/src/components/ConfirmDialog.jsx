@@ -1,16 +1,17 @@
 import { useState } from 'react';
-import { AlertTriangle, X } from 'lucide-react';
+import { AlertCircle, X } from 'lucide-react';
 
 // Componente de diálogo de confirmación
-const ConfirmDialog = ({ 
-  isOpen, 
-  onClose, 
-  onConfirm, 
-  title = "Confirmar acción", 
-  message, 
-  confirmText = "Confirmar", 
+const ConfirmDialog = ({
+  isOpen,
+  onClose,
+  onConfirm,
+  title = "Confirmar acción",
+  message,
+  confirmText = "Confirmar",
   cancelText = "Cancelar",
-  type = "danger" // "danger", "warning", "info"
+  type = "danger", // "danger", "warning", "info"
+  width = "max-w-md" // Nuevo atributo para manejar el ancho
 }) => {
   if (!isOpen) return null;
 
@@ -36,11 +37,11 @@ const ConfirmDialog = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+      <div className={`bg-white rounded-lg shadow-xl ${width} w-full mx-4`}>
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b">
           <div className="flex items-center space-x-3">
-            <AlertTriangle className={`w-6 h-6 ${styles.icon}`} />
+            <AlertCircle className={`w-6 h-6 ${styles.icon}`} />
             <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
           </div>
           <button
@@ -53,7 +54,7 @@ const ConfirmDialog = ({
 
         {/* Content */}
         <div className="p-4">
-          <p className="text-gray-700">{message}</p>
+          <div className="text-gray-700 max-h-96 overflow-y-auto pr-2">{message}</div>
         </div>
 
         {/* Actions */}
@@ -85,10 +86,11 @@ const useConfirmDialog = () => {
     onConfirm: null,
     confirmText: 'Confirmar',
     cancelText: 'Cancelar',
-    type: 'danger'
+    type: 'danger',
+    width: 'max-w-md' // Nuevo estado para el ancho
   });
 
-  const showDialog = ({ title, message, onConfirm, confirmText, cancelText, type }) => {
+  const showDialog = ({ title, message, onConfirm, confirmText, cancelText, type, width }) => {
     setDialogState({
       isOpen: true,
       title: title || 'Confirmar acción',
@@ -96,7 +98,8 @@ const useConfirmDialog = () => {
       onConfirm,
       confirmText: confirmText || 'Confirmar',
       cancelText: cancelText || 'Cancelar',
-      type: type || 'danger'
+      type: type || 'danger',
+      width: width || 'max-w-md' // Agregar el ancho al estado
     });
   };
 
@@ -121,6 +124,7 @@ const useConfirmDialog = () => {
       confirmText={dialogState.confirmText}
       cancelText={dialogState.cancelText}
       type={dialogState.type}
+      width={dialogState.width} // Pasar el ancho al componente
     />
   );
 
