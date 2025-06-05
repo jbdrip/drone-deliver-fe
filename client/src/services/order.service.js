@@ -23,9 +23,16 @@ export const createOrder = async (orderData) => {
 
 export const updateOrder = async (id, orderData) => {
   return await consumeService({
-    url: `orders/${id}`,
+    url: `orders/${id}/edit`,
     method: 'PUT',
     body: JSON.stringify(orderData)
+  })
+}
+
+export const confirmOrder = async (id) => {
+  return await consumeService({
+    url: `orders/${id}/confirm`,
+    method: 'PATCH'
   })
 }
 

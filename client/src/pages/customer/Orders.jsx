@@ -4,12 +4,10 @@ import OrderForm from '../../components/forms/OrderForm'
 import OrderSummary from '../../components/pages/orders/OrderSummary'
 import RoutePreview from '../../components/pages/orders/RoutePreview'
 import Tooltip from '../../components/Tooltip'
-import { getOrders, createOrder, updateOrder, deactivateOrder } from '../../services/order.service'
+import { getOrders, createOrder, updateOrder, deactivateOrder, confirmOrder } from '../../services/order.service'
 import { CirclePlus, Edit, Route, Trash } from 'lucide-react';
 import { toast } from 'react-toastify'
 import useConfirmDialog from '../../components/ConfirmDialog'
-import TransactionForm from '../../components/forms/TransactionForm'
-import { createTransaction } from '../../services/transaction.service'
 import { getProducts } from '../../services/product.service'
 
 const statusOptions = [
@@ -29,7 +27,6 @@ export default function Orders() {
   const [searchTerm, setSearchTerm] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [isOrderModalOpen, setIsOrderOpen] = useState(false)
-  const [isTransactionModalOpen, setIsTransactionOpen] = useState(false)
   const [selectedOrder, setSelectedOrder] = useState(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   
@@ -114,9 +111,34 @@ export default function Orders() {
     setIsOrderOpen(true)
   }
 
-  const handleAssignCredits = async (order) => {
-    setSelectedOrder(order)
-    setIsTransactionOpen(true)
+  const handleConfirmOrder = async (order) => {
+    // Obtener la informacion de la ruta en base al pedido
+    const routeInfo = order.delivery_route.map(stop => stop.center_name).join(' -> ')
+    showDialog({
+      title: "Confirmar Pedido",
+      message: <OrderSummary orderData={order} routeInfo={routeInfo} />,
+      confirmText: "Confirmar",
+      cancelText: "Cancelar",
+      type: "info",
+      width: 'max-w-2xl',
+      height: 'max-h-96 lg:max-h-[60vh]',
+      onConfirm: async () => {
+        try {
+          const response = await confirmOrder(order.id)
+          console.log('Confirming order:', response)
+          if (response.status === 'success') {
+            fetchOrders() // Refresh the list
+            toast.success(response.message || `Pedido "${order.id}" confirmado exitosamente.`)
+          } else {
+            console.error('Error confirming order:', response.detail)
+            toast.error(`Error al confirmar pedido: ${response.detail}`)
+          }
+        } catch (error) {
+          console.error('Error confirming order:', error)
+          toast.error('Error al confirmar pedido')
+        }
+      }
+    });
   }
 
   const handleRoutePreview = (order) => {
@@ -127,6 +149,7 @@ export default function Orders() {
       cancelText: 'Cancelar',
       type: 'info',
       width: 'max-w-3xl',
+      height: 'max-h-96 lg:max-h-full',
       onConfirm: () => {
         setSelectedOrder(null) // Reset selected order after preview
       }
@@ -175,22 +198,7 @@ export default function Orders() {
         setIsOrderOpen(false)
         toast.success(response.message)
         fetchOrders() // Refresh the list
-        showDialog({
-          title: 'Confirmar Pedido',
-          message: (
-            <div>
-              <p className="mb-4"><b>{`¡Pedido ${selectedOrder ? 'actualizado' : 'creado'} exitosamente!`}</b></p>
-              <OrderSummary orderData={response.data} />
-            </div>
-          ),
-          confirmText: 'Confirmar Pedido',
-          cancelText: 'Cancelar',
-          type: 'info',
-          width: 'max-w-2xl',
-          onConfirm: () => {
-            setSelectedOrder(null)
-          }
-        })
+        handleConfirmOrder(response.data.order) // Show confirmation dialog with order details
       } else {
         console.error('Error submitting form:', response.detail)
         toast.error(response.detail)
@@ -198,26 +206,6 @@ export default function Orders() {
     } catch (error) {
       console.error('Error submitting form:', error)
       toast.error(`Error al ${selectedOrder ? 'actualizar' : 'crear'} orden: ${error.message || 'Error desconocido'}`)
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
-
-  const handleTransactionFormSubmit = async (formData) => {
-    setIsSubmitting(true)
-    try {
-      const response = await createTransaction(formData)
-      if (response.status === 'success') {
-        setIsTransactionOpen(false)
-        fetchOrders() // Refresh the list
-        toast.success(response.message || 'Transacción realizada exitosamente.')
-      } else {
-        console.error('Error submitting transaction:', response.message)
-        toast.error(`Error al crear transacción: ${response.message}`)
-      }
-    } catch (error) {
-      console.error('Error submitting transaction:', error)
-      toast.error(`Error al crear transacción: ${error.message || 'Error desconocido'}`)
     } finally {
       setIsSubmitting(false)
     }
@@ -322,7 +310,7 @@ export default function Orders() {
             <>
               <Tooltip text="Confirmar pedido">
                 <button
-                  onClick={() => handleAssignCredits(order)}
+                  onClick={() => handleConfirmOrder(order)}
                   className="p-2 text-green-600 bg-green-50 rounded-lg hover:bg-green-100 hover:text-green-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50"
                   aria-label="Confirmar pedido"
                 >
@@ -338,28 +326,26 @@ export default function Orders() {
                   <Edit size={16} />
                 </button>
               </Tooltip>
-              <Tooltip text="Ver ruta">
+              <Tooltip text="Cancelar pedido">
                 <button
-                  onClick={() => handleRoutePreview(order)}
-                  className="p-2 text-purple-600 bg-purple-50 rounded-lg hover:bg-purple-100 hover:text-purple-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50"
-                  aria-label="Ver ruta"
+                  onClick={() => handleDeactivateOrder(order)}
+                  className="p-2 text-red-600 bg-red-50 rounded-lg hover:bg-red-100 hover:text-red-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
+                  aria-label="Cancelar pedido"
                 >
-                  <Route size={16} />
+                  <Trash size={16} />
                 </button>
               </Tooltip>
             </>
           )}
-          {(order.status_name === 'pending' && order.status_name === 'confirmed') && (
-            <Tooltip text="Eliminar pedido">
-              <button
-                onClick={() => handleDeactivateOrder(order)}
-                className="p-2 text-red-600 bg-red-50 rounded-lg hover:bg-red-100 hover:text-red-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
-                aria-label="Eliminar pedido"
-              >
-                <Trash size={16} />
-              </button>
-            </Tooltip>
-          )}
+          <Tooltip text="Ver ruta">
+            <button
+              onClick={() => handleRoutePreview(order)}
+              className="p-2 text-purple-600 bg-purple-50 rounded-lg hover:bg-purple-100 hover:text-purple-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50"
+              aria-label="Ver ruta"
+            >
+              <Route size={16} />
+            </button>
+          </Tooltip>
         </div>
       )
     }
@@ -400,14 +386,6 @@ export default function Orders() {
         onSubmit={handleOrderFormSubmit}
         order={selectedOrder}
         products={products}
-        isLoading={isSubmitting}
-      />
-
-      <TransactionForm
-        isOpen={isTransactionModalOpen}
-        onClose={() => setIsTransactionOpen(false)}
-        onSubmit={handleTransactionFormSubmit}
-        order={selectedOrder}
         isLoading={isSubmitting}
       />
 

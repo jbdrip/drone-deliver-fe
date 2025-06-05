@@ -11,7 +11,8 @@ const ConfirmDialog = ({
   confirmText = "Confirmar",
   cancelText = "Cancelar",
   type = "danger", // "danger", "warning", "info"
-  width = "max-w-md" // Nuevo atributo para manejar el ancho
+  width = "max-w-md", // Nuevo atributo para manejar el ancho
+  height = "max-h-96" // Nuevo atributo para manejar la altura
 }) => {
   if (!isOpen) return null;
 
@@ -54,7 +55,7 @@ const ConfirmDialog = ({
 
         {/* Content */}
         <div className="p-4">
-          <div className="text-gray-700 max-h-96 lg:max-h-full overflow-y-auto pr-2">{message}</div>
+          <div className={`text-gray-700 ${height} overflow-y-auto pr-2`}>{message}</div>
         </div>
 
         {/* Actions */}
@@ -87,10 +88,11 @@ const useConfirmDialog = () => {
     confirmText: 'Confirmar',
     cancelText: 'Cancelar',
     type: 'danger',
-    width: 'max-w-md' // Nuevo estado para el ancho
+    width: 'max-w-md', // Nuevo estado para el ancho
+    height: 'max-h-96' // Nuevo estado para la altura
   });
 
-  const showDialog = ({ title, message, onConfirm, confirmText, cancelText, type, width }) => {
+  const showDialog = ({ title, message, onConfirm, confirmText, cancelText, type, width, height }) => {
     setDialogState({
       isOpen: true,
       title: title || 'Confirmar acción',
@@ -99,7 +101,8 @@ const useConfirmDialog = () => {
       confirmText: confirmText || 'Confirmar',
       cancelText: cancelText || 'Cancelar',
       type: type || 'danger',
-      width: width || 'max-w-md' // Agregar el ancho al estado
+      width: width || 'max-w-md', // Agregar el ancho al estado
+      height: height || 'max-h-96' // Mantener la altura por defecto
     });
   };
 
@@ -125,6 +128,7 @@ const useConfirmDialog = () => {
       cancelText={dialogState.cancelText}
       type={dialogState.type}
       width={dialogState.width} // Pasar el ancho al componente
+      height={dialogState.height} // Pasar la altura al componente
     />
   );
 

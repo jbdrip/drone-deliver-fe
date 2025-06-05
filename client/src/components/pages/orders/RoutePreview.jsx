@@ -88,7 +88,7 @@ const RoutePreview = ({ orderData }) => {
               
               {/* Puntos de la ruta */}
               {svgPoints.map((point, index) => (
-                <g key={point.center_id}>
+                <g key={`${point.center_id}-${index}`}>
                   {/* Círculo del punto */}
                   <circle
                     cx={point.x}
@@ -183,7 +183,7 @@ const RoutePreview = ({ orderData }) => {
             <div className="space-y-2 max-h-90 overflow-y-auto">
               {route.map((point, index) => (
                 <div
-                  key={point.center_id}
+                  key={`${point.center_id}-${index}`}
                   className={`flex items-center space-x-3 p-3 rounded-lg text-sm cursor-pointer transition-all ${
                     selectedPoint === index 
                       ? 'bg-purple-100 border-2 border-purple-300 shadow-sm' 
