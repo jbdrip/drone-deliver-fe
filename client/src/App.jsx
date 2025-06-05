@@ -8,11 +8,11 @@ import AuthGuard from './components/auth/AuthGuard'
 // Pages
 import Login from "./pages/Login"
 import Register from "./pages/Register"
-import Users from "./pages/admin/Users"
-import Customers from "./pages/admin/Customers"
-import DistributionCenters from "./pages/admin/DistributionCenters"
-import Products from "./pages/admin/Products"
-import Orders from "./pages/customer/Orders"
+import Users from "./pages/Users"
+import Customers from "./pages/Customers"
+import DistributionCenters from "./pages/DistributionCenters"
+import Products from "./pages/Products"
+import Orders from "./pages/Orders"
 
 function App() {
 
@@ -29,11 +29,10 @@ function App() {
           <Route path="/admin/customers" element={<Customers />} />
           <Route path="/admin/distribution-centers" element={<DistributionCenters />} />
           <Route path="/admin/products" element={<Products />} />
-          <Route path="/admin/orders" element={<div>Orders Page</div>} />
+          <Route path="/admin/orders" element={<Orders/>} />
           <Route path="/customer/orders" element={<Orders/>} />
-          
           {/* Catch-all for 404 */}
-          <Route path="*" element={<div>404 Not Found</div>} />
+          <Route path="*" element={<div>404 No encontrado.</div>} />
         </Route>
       </Routes>
       <ToastContainer />

@@ -1,14 +1,15 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import DataTable from '../../components/DataTable'
-import OrderForm from '../../components/forms/OrderForm'
-import OrderSummary from '../../components/pages/orders/OrderSummary'
-import RoutePreview from '../../components/pages/orders/RoutePreview'
-import Tooltip from '../../components/Tooltip'
-import { getOrders, createOrder, updateOrder, cancelOrder, confirmOrder } from '../../services/order.service'
+import DataTable from '../components/DataTable'
+import OrderForm from '../components/forms/OrderForm'
+import OrderSummary from '../components/pages/orders/OrderSummary'
+import RoutePreview from '../components/pages/orders/RoutePreview'
+import Tooltip from '../components/Tooltip'
+import { getOrders, createOrder, updateOrder, cancelOrder, confirmOrder, deliverOrder } from '../services/order.service'
 import { CirclePlus, Edit, Route, Trash } from 'lucide-react';
 import { toast } from 'react-toastify'
-import useConfirmDialog from '../../components/ConfirmDialog'
-import { getProducts } from '../../services/product.service'
+import useConfirmDialog from '../components/ConfirmDialog'
+import { getProducts } from '../services/product.service'
+import { useUserData } from '../hooks/useAuth'
 
 const statusOptions = [
   { value: 'pending', label: 'Pendiente', color: 'yellow' },
@@ -36,6 +37,7 @@ export default function Orders() {
   const fetchingRef = useRef(false)
 
   const { showDialog, ConfirmDialogComponent } = useConfirmDialog()
+  const { userData } = useUserData() // Asumiendo que tienes un hook para obtener datos del usuario
 
   const fetchOrders = async (page = currentPage, search = searchTerm) => {
     // Prevenir múltiples llamadas simultáneas
@@ -125,7 +127,6 @@ export default function Orders() {
       onConfirm: async () => {
         try {
           const response = await confirmOrder(order.id)
-          console.log('Confirming order:', response)
           if (response.status === 'success') {
             fetchOrders() // Refresh the list
             toast.success(response.message || `Pedido "${order.id}" confirmado exitosamente.`)
@@ -136,6 +137,31 @@ export default function Orders() {
         } catch (error) {
           console.error('Error confirming order:', error)
           toast.error('Error al confirmar pedido')
+        }
+      }
+    });
+  }
+
+  const handleDeliverOrder = async (order) => {
+    showDialog({
+      title: "Marcar como Entregado",
+      message: `¿Estás seguro de que deseas marcar el pedido: "${order.id}" como entregado?`,
+      confirmText: "Marcar como Entregado",
+      cancelText: "Cerrar",
+      type: "info",
+      onConfirm: async () => {
+        try {
+          const response = await deliverOrder(order.id)
+          if (response.status === 'success') {
+            fetchOrders() // Refresh the list
+            toast.success(response.message || `Pedido "${order.id}" marcado como entregado exitosamente.`)
+          } else {
+            console.error('Error confirming order:', response.detail)
+            toast.error(`Error al marcar pedido como entregado: ${response.detail}`)
+          }
+        } catch (error) {
+          console.error('Error confirming order:', error)
+          toast.error('Error al marcar pedido como entregado')
         }
       }
     });
@@ -306,7 +332,7 @@ export default function Orders() {
       width: 'w-40', // Fixed width for actions
       render: (order) => (
         <div className="flex space-x-2 whitespace-nowrap">
-          {order.status_name === 'pending' && (
+          {userData.role === 'customer' && order.status_name === 'pending' && (
             <>
               <Tooltip text="Confirmar pedido">
                 <button
@@ -337,6 +363,32 @@ export default function Orders() {
               </Tooltip>
             </>
           )}
+          {userData.role === 'admin' && (
+            <>
+              {order.status_name === 'confirmed' && (
+                <Tooltip text="Marcar como entregado">
+                  <button
+                    onClick={() => handleDeliverOrder(order)}
+                    className="p-2 text-green-600 bg-green-50 rounded-lg hover:bg-green-100 hover:text-green-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50"
+                    aria-label="Marcar como entregado"
+                  >
+                    <CirclePlus size={16} />
+                  </button>
+                </Tooltip>
+              )}
+              {order.status_name === 'pending' && (
+                <Tooltip text="Cancelar pedido">
+                  <button
+                    onClick={() => handleCancelOrder(order)}
+                    className="p-2 text-red-600 bg-red-50 rounded-lg hover:bg-red-100 hover:text-red-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
+                    aria-label="Cancelar pedido"
+                  >
+                    <Trash size={16} />
+                  </button>
+                </Tooltip>
+              )}
+            </>
+          )}
           <Tooltip text="Ver ruta">
             <button
               onClick={() => handleRoutePreview(order)}
@@ -355,14 +407,16 @@ export default function Orders() {
     <div className="h-full flex flex-col">
       {/* Header - Fixed height */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6 flex-shrink-0">
-        <h1 className="text-2xl font-bold text-gray-900">Mis Pedidos</h1>
-        <button
-          onClick={handleCreateOrder}
-          className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors whitespace-nowrap"
-        >
-          <CirclePlus size={16} />
-          <span>Crear Pedido</span>
-        </button>
+        <h1 className="text-2xl font-bold text-gray-900">{userData?.role === 'customer' ? 'Mis' : ''} Pedidos</h1>
+        {userData?.role === 'customer' && (
+          <button
+            onClick={handleCreateOrder}
+            className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors whitespace-nowrap"
+          >
+            <CirclePlus size={16} />
+            <span>Crear Pedido</span>
+          </button>
+        )}
       </div>
 
       {/* Table Container - Flexible height */}

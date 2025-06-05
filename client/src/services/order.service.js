@@ -36,6 +36,13 @@ export const confirmOrder = async (id) => {
   })
 }
 
+export const deliverOrder = async (id) => {
+  return await consumeService({
+    url: `orders/${id}/deliver`,
+    method: 'PATCH'
+  })
+}
+
 export const cancelOrder = async (id, orderData) => {
   return await consumeService({
     url: `orders/${id}/cancel`,

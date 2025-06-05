@@ -1,21 +1,22 @@
 import { useState, useEffect, useRef } from 'react'
-import DataTable from '../../components/DataTable'
-import UserFormModal from '../../components/forms/UserForm'
-import Tooltip from '../../components/Tooltip'
-import { getUsers, createUser, updateUser, deactivateUser } from '../../services/user.service'
-import { Edit, UserX, UserPlus } from 'lucide-react';
+import DataTable from '../components/DataTable'
+import ProductForm from '../components/forms/ProductForm'
+import Tooltip from '../components/Tooltip'
+import { getProducts, createProduct, updateProduct, deactivateProduct } from '../services/product.service'
+import { Edit, Trash, CirclePlus } from 'lucide-react';
 import { toast } from 'react-toastify'
-import useConfirmDialog from '../../components/ConfirmDialog'
-import { useUserData } from '../../hooks/useAuth'
+import useConfirmDialog from '../components/ConfirmDialog'
 
-export default function Users() {
-  const [users, setUsers] = useState([])
-  const [totalUsers, setTotalUsers] = useState(0)
+
+export default function Products() {
+
+  const [products, setProducts] = useState([])
+  const [totalProducts, setTotalProducts] = useState(0)
   const [currentPage, setCurrentPage] = useState(1)
   const [searchTerm, setSearchTerm] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [selectedUser, setSelectedUser] = useState(null)
+  const [selectedProduct, setSelectedProduct] = useState(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   
   const itemsPerPage = 10
@@ -24,41 +25,40 @@ export default function Users() {
   const fetchingRef = useRef(false)
 
   const { showDialog, ConfirmDialogComponent } = useConfirmDialog()
-  const { userId } = useUserData()
 
-  const fetchUsers = async (page = currentPage, search = searchTerm) => {
+  const fetchProducts = async (page = currentPage, search = searchTerm) => {
     // Prevenir múltiples llamadas simultáneas
     if (fetchingRef.current) return
     fetchingRef.current = true
     setIsLoading(true)
     try {
-      const response = await getUsers(page, itemsPerPage, search)
+      const response = await getProducts(page, itemsPerPage, search)
       if (response.status === 'success' && response.data) {
-        setUsers(response.data.users || [])
-        setTotalUsers(response.data.total || 0)
+        setProducts(response.data.products || [])
+        setTotalProducts(response.data.total || 0)
       } else {
-        console.error('Error fetching users:', response.message)
-        setUsers([])
-        setTotalUsers(0)
+        console.error('Error fetching products:', response.message)
+        setProducts([])
+        setTotalProducts(0)
       }
     } catch (error) {
-      console.error('Error fetching users:', error)
-      setUsers([])
-      setTotalUsers(0)
+      console.error('Error fetching products:', error)
+      setProducts([])
+      setTotalProducts(0)
     } finally {
       setIsLoading(false)
       fetchingRef.current = false
     }
   }
 
-  // Efecto para cargar los usuarios inicialmente
+  // Efecto para cargar los productos inicialmente
   useEffect(() => {
-    fetchUsers()
+    fetchProducts()
   }, []) // Solo se ejecuta una vez al montar el componente
 
   // Efecto separado para cuando cambian la página o búsqueda
   useEffect(() => {
-    fetchUsers(currentPage, searchTerm)
+    fetchProducts(currentPage, searchTerm)
   }, [currentPage, searchTerm])
 
   const handlePageChange = (newPage) => {
@@ -70,40 +70,36 @@ export default function Users() {
     setCurrentPage(1) // Reset to first page when searching
   }
 
-  const handleCreateUser = () => {
-    setSelectedUser(null)
+  const handleCreateProduct = () => {
+    setSelectedProduct(null)
     setIsModalOpen(true)
   }
 
-  const handleEditUser = user => {
-    setSelectedUser(user)
+  const handleEditProduct = user => {
+    setSelectedProduct(user)
     setIsModalOpen(true)
   }
 
-  const handleDeactivateUser = async (user) => {
+  const handleDeactivateProduct = async (product) => {
     showDialog({
-      title: "Desactivar Usuario",
-      message: `¿Estás seguro de que deseas desactivar al usuario "${user.full_name}"?\n Una vez desactivado, no podrá reactivar su cuenta.`,
-      confirmText: "Desactivar",
+      title: "Eliminar Producto",
+      message: `¿Estás seguro de que deseas eliminar el producto "${product.name}"?\n Una vez eliminado, no podrá recuperar sus datos.`,
+      confirmText: "Eliminar",
       cancelText: "Cancelar",
       type: "danger",
       onConfirm: async () => {
         try {
-          // Validate that the deactivated user is not the currently logged-in user
-          if (userId && userId === user.id)
-            return toast.error('No puedes desactivar tu propio usuario.')
-
-          const response = await deactivateUser(user.id)
+          const response = await deactivateProduct(product.id)
           if (response.status === 'success') {
-            fetchUsers() // Refresh the list
-            toast.success(`Usuario "${user.full_name}" desactivado exitosamente.`)
+            fetchProducts() // Refresh the list
+            toast.success(`Producto "${product.full_name}" eliminado exitosamente.`)
           } else {
-            console.error('Error deactivating user:', response.message)
-            toast.error(`Error al desactivar usuario: ${response.message}`)
+            console.error('Error deleting product:', response.message)
+            toast.error(`Error al eliminar producto: ${response.message}`)
           }
         } catch (error) {
-          console.error('Error deactivating user:', error)
-          toast.error('Error al desactivar usuario')
+          console.error('Error deleting product:', error)
+          toast.error('Error al eliminar producto')
         }
       }
     });
@@ -113,28 +109,26 @@ export default function Users() {
     setIsSubmitting(true)
     try {
       let response
-      const {  name, ...rest } = formData
-      const user = { full_name: name, ...rest }
 
-      if (selectedUser) {
-        // Editing existing user
-        response = await updateUser(selectedUser.id, user)
+      if (selectedProduct) {
+        // Editing existing product
+        response = await updateProduct(selectedProduct.id, formData)
       } else {
-        // Creating new user
-        response = await createUser(user)
+        // Creating new product
+        response = await createProduct(formData)
       }
 
       if (response.status === 'success') {
         setIsModalOpen(false)
-        fetchUsers() // Refresh the list
-        toast.success(`Usuario ${selectedUser ? 'actualizado' : 'creado'} exitosamente.`)
+        fetchProducts() // Refresh the list
+        toast.success(`Producto ${selectedProduct ? 'actualizado' : 'creado'} exitosamente.`)
       } else {
         console.error('Error submitting form:', response.message)
-        toast.error(`Error al ${selectedUser ? 'actualizar' : 'crear'} usuario: ${response.message}`)
+        toast.error(`Error al ${selectedProduct ? 'actualizar' : 'crear'} producto: ${response.message}`)
       }
     } catch (error) {
       console.error('Error submitting form:', error)
-      toast.error(`Error al ${selectedUser ? 'actualizar' : 'crear'} usuario: ${error.message || 'Error desconocido'}`)
+      toast.error(`Error al ${selectedProduct ? 'actualizar' : 'crear'} producto: ${error.message || 'Error desconocido'}`)
     } finally {
       setIsSubmitting(false)
     }
@@ -143,35 +137,36 @@ export default function Users() {
   const columns = [
     {
       header: 'Nombre',
-      key: 'full_name',
+      key: 'name',
       width: 'min-w-32', // Minimum width, can grow
     },
     {
-      header: 'Email',
-      key: 'email',
-      width: 'min-w-48', // Minimum width for email
-    },
-    {
-      header: 'Rol',
-      key: 'role',
-      width: 'w-32', // Fixed width for role
+      header: 'Descripción',
+      key: 'description',
+      width: 'min-w-48', // Minimum width for description
       render: (user) => (
-        <span className="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-800">
-          {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+        <span className="whitespace-nowrap">
+          {user.description || '- - - - - -'}
         </span>
       )
     },
     {
-      header: 'Estado',
-      key: 'is_active',
-      width: 'w-24', // Fixed width for status
+      header: 'Precio',
+      key: 'price',
+      width: 'w-24', // Fixed width for price
       render: (user) => (
-        <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap ${
-          user.is_active 
-            ? 'bg-green-100 text-green-800' 
-            : 'bg-red-100 text-red-800'
-        }`}>
-          {user.is_active ? 'ACTIVO' : 'INACTIVO'}
+        <span className="whitespace-nowrap">
+          Q {user.price ? user.price.toLocaleString('es-ES') : '0'}
+        </span>
+      )
+    },
+    {
+      header: 'Stock',
+      key: 'stock_quantity',
+      width: 'w-24', // Fixed width for stock
+      render: (user) => (
+        <span className="whitespace-nowrap">
+          {user.stock_quantity ? user.stock_quantity : '0'}
         </span>
       )
     },
@@ -191,23 +186,23 @@ export default function Users() {
       width: 'w-40', // Fixed width for actions
       render: (user) => (
         <div className="flex space-x-2 whitespace-nowrap">
-          <Tooltip text="Editar usuario">
+          <Tooltip text="Editar producto">
             <button
-              onClick={() => handleEditUser(user)}
+              onClick={() => handleEditProduct(user)}
               className="p-2 text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 hover:text-blue-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
-              aria-label="Editar usuario"
+              aria-label="Editar producto"
             >
               <Edit size={16} />
             </button>
           </Tooltip>
           {user.is_active && (
-            <Tooltip text="Desactivar usuario">
+            <Tooltip text="Eliminar producto">
               <button
-                onClick={() => handleDeactivateUser(user)}
+                onClick={() => handleDeactivateProduct(user)}
                 className="p-2 text-red-600 bg-red-50 rounded-lg hover:bg-red-100 hover:text-red-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
-                aria-label="Desactivar usuario"
+                aria-label="Eliminar producto"
               >
-                <UserX size={16} />
+                <Trash size={16} />
               </button>
             </Tooltip>
           )}
@@ -218,16 +213,16 @@ export default function Users() {
 
   return (
     <div className="h-full flex flex-col">
+
       {/* Header - Fixed height */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6 flex-shrink-0">
-        <h1 className="text-2xl font-bold text-gray-900">Usuarios</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Productos</h1>
         <button
-          onClick={handleCreateUser}
+          onClick={handleCreateProduct}
           className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors whitespace-nowrap"
         >
-          <UserPlus size={16} />
-          <span>Crear Usuario</span>
-          
+          <CirclePlus size={16} />
+          <span>Crear Producto</span>
         </button>
       </div>
 
@@ -235,22 +230,22 @@ export default function Users() {
       <div className="flex-1 min-h-0">
         <DataTable
           columns={columns}
-          data={users}
-          totalItems={totalUsers}
+          data={products}
+          totalItems={totalProducts}
           itemsPerPage={itemsPerPage}
           currentPage={currentPage}
           onPageChange={handlePageChange}
           onSearch={handleSearch}
-          searchPlaceholder="Buscar usuarios por nombre o email..."
+          searchPlaceholder="Buscar productos por nombre o descripción..."
           isLoading={isLoading}
         />
       </div>
 
-      <UserFormModal
+      <ProductForm
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSubmit={handleFormSubmit}
-        user={selectedUser}
+        product={selectedProduct}
         isLoading={isSubmitting}
       />
 

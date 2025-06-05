@@ -1,13 +1,13 @@
 import { useState, useEffect, useRef } from 'react'
-import DataTable from '../../components/DataTable'
-import CustomerForm from '../../components/forms/CustomerForm'
-import Tooltip from '../../components/Tooltip'
-import { getCustomers, createCustomer, updateCustomer, deactivateCustomer } from '../../services/customer.service'
+import DataTable from '../components/DataTable'
+import CustomerForm from '../components/forms/CustomerForm'
+import Tooltip from '../components/Tooltip'
+import { getCustomers, createCustomer, updateCustomer, deactivateCustomer } from '../services/customer.service'
 import { CreditCard, Edit, Trash } from 'lucide-react';
 import { toast } from 'react-toastify'
-import useConfirmDialog from '../../components/ConfirmDialog'
-import TransactionForm from '../../components/forms/TransactionForm'
-import { createTransaction } from '../../services/transaction.service'
+import useConfirmDialog from '../components/ConfirmDialog'
+import TransactionForm from '../components/forms/TransactionForm'
+import { createTransaction } from '../services/transaction.service'
 
 
 export default function Customers() {

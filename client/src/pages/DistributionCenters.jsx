@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef } from 'react'
-import DataTable from '../../components/DataTable'
-import DistributionCenterForm from '../../components/forms/DistributionCenterForm'
-import Tooltip from '../../components/Tooltip'
-import { getDistributionCenters, createDistributionCenter, updateDistributionCenter, deactivateDistributionCenter } from '../../services/distributionCenter.service'
+import DataTable from '../components/DataTable'
+import DistributionCenterForm from '../components/forms/DistributionCenterForm'
+import Tooltip from '../components/Tooltip'
+import { getDistributionCenters, createDistributionCenter, updateDistributionCenter, deactivateDistributionCenter } from '../services/distributionCenter.service'
 import { CirclePlus, Edit, Trash } from 'lucide-react';
 import { toast } from 'react-toastify'
-import useConfirmDialog from '../../components/ConfirmDialog'
+import useConfirmDialog from '../components/ConfirmDialog'
 
 
 export default function DistributionCenters() {
