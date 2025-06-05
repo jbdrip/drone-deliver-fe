@@ -2,9 +2,10 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import DataTable from '../../components/DataTable'
 import OrderForm from '../../components/forms/OrderForm'
 import OrderSummary from '../../components/pages/orders/OrderSummary'
+import RoutePreview from '../../components/pages/orders/RoutePreview'
 import Tooltip from '../../components/Tooltip'
 import { getOrders, createOrder, updateOrder, deactivateOrder } from '../../services/order.service'
-import { CirclePlus, Edit, Trash } from 'lucide-react';
+import { CirclePlus, Edit, Route, Trash } from 'lucide-react';
 import { toast } from 'react-toastify'
 import useConfirmDialog from '../../components/ConfirmDialog'
 import TransactionForm from '../../components/forms/TransactionForm'
@@ -116,6 +117,20 @@ export default function Orders() {
   const handleAssignCredits = async (order) => {
     setSelectedOrder(order)
     setIsTransactionOpen(true)
+  }
+
+  const handleRoutePreview = (order) => {
+    showDialog({
+      title: 'Ruta de Envío',
+      message: <RoutePreview orderData={order} />,
+      confirmText: 'Cerrar',
+      cancelText: 'Cancelar',
+      type: 'info',
+      width: 'max-w-3xl',
+      onConfirm: () => {
+        setSelectedOrder(null) // Reset selected order after preview
+      }
+    });
   }
 
   const handleDeactivateOrder = async (order) => {
@@ -321,6 +336,15 @@ export default function Orders() {
                   aria-label="Editar pedido"
                 >
                   <Edit size={16} />
+                </button>
+              </Tooltip>
+              <Tooltip text="Ver ruta">
+                <button
+                  onClick={() => handleRoutePreview(order)}
+                  className="p-2 text-purple-600 bg-purple-50 rounded-lg hover:bg-purple-100 hover:text-purple-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50"
+                  aria-label="Ver ruta"
+                >
+                  <Route size={16} />
                 </button>
               </Tooltip>
             </>

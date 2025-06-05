@@ -54,7 +54,7 @@ const ConfirmDialog = ({
 
         {/* Content */}
         <div className="p-4">
-          <div className="text-gray-700 max-h-96 overflow-y-auto pr-2">{message}</div>
+          <div className="text-gray-700 max-h-96 lg:max-h-full overflow-y-auto pr-2">{message}</div>
         </div>
 
         {/* Actions */}
