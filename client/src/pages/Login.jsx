@@ -112,7 +112,7 @@ export default function Login() {
           {isSubmitting ? "Ingresando..." : "Ingresar"}
         </button>
 
-        <div className="text-center my-3">
+        <div className="text-center mt-6 mb-3">
           <button
             type="button"
             onClick={() => navigate("/forgot-password")}
@@ -122,13 +122,13 @@ export default function Login() {
           </button>
         </div>
 
-        <div className="text-center mt-4">
+        <div className="text-center mt-2">
           <p className="text-gray-600">
             ¿No tienes una cuenta?{" "}
             <button
               type="button"
               onClick={() => navigate("/register")}
-              className="text-blue-600 hover:text-blue-700 underline"
+              className="text-blue-600 hover:text-blue-700 text-sm underline"
             >
               Regístrate aquí
             </button>
