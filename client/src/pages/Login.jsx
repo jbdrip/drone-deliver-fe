@@ -80,7 +80,7 @@ export default function Login() {
           )}
         </div>
 
-        <div className="mb-9">
+        <div className="mb-6">
           <label className="block text-gray-700">Contraseña</label>
           <input
             type="password"
@@ -111,6 +111,16 @@ export default function Login() {
         >
           {isSubmitting ? "Ingresando..." : "Ingresar"}
         </button>
+
+        <div className="text-center my-3">
+          <button
+            type="button"
+            onClick={() => navigate("/forgot-password")}
+            className="text-blue-600 hover:text-blue-700 text-sm underline"
+          >
+            ¿Olvidaste tu contraseña?
+          </button>
+        </div>
 
         <div className="text-center mt-4">
           <p className="text-gray-600">

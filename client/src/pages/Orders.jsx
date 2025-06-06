@@ -156,7 +156,9 @@ export default function Orders() {
         try {
           const response = await confirmOrder(order.id)
           if (response.status === 'success') {
-            fetchOrders() // Refresh the list
+            getCustomerCurrentUser() // Refresh customer data
+            fetchOrders() // Refresh the orders list
+            setSelectedOrder(null) // Reset selected order after confirmation
             toast.success(response.message || `Pedido "${order.id}" confirmado exitosamente.`)
           } else {
             console.error('Error confirming order:', response.detail)
@@ -431,10 +433,24 @@ export default function Orders() {
     }
   ]
 
+  // Si el usuario es administrador, agregar columna de cliente luego del ID de orden
+  if (userData?.role === 'admin') {
+    columns.splice(1, 0, {
+      header: 'Cliente',
+      key: 'customer_name',
+      width: 'min-w-48', // Minimum width for customer name
+      render: (order) => (
+        <span className="whitespace-nowrap">
+          {order.customer_name || 'N/A'}
+        </span>
+      )
+    })
+  }
+
   return (
     <div className="h-full flex flex-col">
       {/* Header - Fixed height */}
-      <div className={`flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 flex-shrink-0 ${userData?.role === 'customer' ? '' : 'mb-6'}`}>
+      <div className={`flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 flex-shrink-0 ${userData?.role === 'customer' ? 'mb-4' : 'mb-6'}`}>
         <div>
           <h1 className="text-2xl font-bold text-gray-900">{userData?.role === 'customer' ? 'Mis' : ''} Pedidos</h1>
           {/* Mostrar el saldo del cliente */}
