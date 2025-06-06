@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
-import { User, Info, Loader2, ShoppingCart, Shirt, Banknote, Check } from 'lucide-react'
+import { User, Info, Loader2, ShoppingCart, Banknote, Check, Box } from 'lucide-react'
 import Modal from '../Modal'
 
 export default function OrderForm({ 
@@ -64,7 +64,7 @@ export default function OrderForm({
           <div>
             <div className="flex items-center mb-4">
               <div className="bg-blue-100 rounded-full p-2 mr-3">
-                <User className="w-5 h-5 text-blue-600" />
+                <Box className="w-5 h-5 text-blue-600" />
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-gray-800">Productos</h3>
@@ -110,7 +110,7 @@ export default function OrderForm({
                     <div className="space-y-3">
                       <div className="flex items-start space-x-3">
                         <div className="bg-blue-100 rounded-full p-2 flex-shrink-0">
-                          <Shirt className="w-4 h-4 text-blue-600" />
+                          <Box className="w-4 h-4 text-blue-600" />
                         </div>
                         <div className="flex-1">
                           <p className="text-sm font-medium text-gray-700">Nombre del Producto</p>

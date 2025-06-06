@@ -2,6 +2,7 @@ import { useForm } from "react-hook-form"
 import { useNavigate } from "react-router-dom"
 import { authLogin } from "../services/auth.service"
 import { useUserData } from "../hooks/useAuth"
+import logo from "../assets/drone-deliver-logo.svg"
 
 export default function Login() {
   const {
@@ -54,6 +55,9 @@ export default function Login() {
         onSubmit={handleSubmit(onSubmit)}
         className="bg-white p-12 rounded-lg shadow-md w-full max-w-sm"
       >
+        <div className="flex justify-center mb-4">
+        <img src={logo} alt="Logo" className="h-24 w-24" />
+        </div>
         <h2 className="text-2xl mb-4 text-center">Iniciar sesión</h2>
         
         <div className="my-4">
