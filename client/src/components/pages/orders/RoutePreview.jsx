@@ -1,8 +1,35 @@
 import { MapPin, Navigation, Target } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 const RoutePreview = ({ orderData }) => {
   const [selectedPoint, setSelectedPoint] = useState(null);
+  const [map, setMap] = useState(null);
+  const [L, setL] = useState(null);
+  const mapRef = useRef(null);
+  const markersRef = useRef([]);
+  const polylineRef = useRef(null);
+  
+  // Cargar Leaflet
+  useEffect(() => {
+    // Cargar CSS de Leaflet
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+    document.head.appendChild(link);
+    
+    // Cargar JS de Leaflet
+    const script = document.createElement('script');
+    script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+    script.onload = () => {
+      setL(window.L);
+    };
+    document.body.appendChild(script);
+    
+    return () => {
+      document.head.removeChild(link);
+      document.body.removeChild(script);
+    };
+  }, []);
   
   // Verificar que existe la ruta de entrega
   if (!orderData.delivery_route || orderData.delivery_route.length === 0) {
@@ -19,36 +46,137 @@ const RoutePreview = ({ orderData }) => {
 
   const route = orderData.delivery_route;
   
-  // Calcular el centro del mapa basado en las coordenadas
-  const centerLat = route.reduce((sum, point) => sum + point.latitude, 0) / route.length;
-  const centerLng = route.reduce((sum, point) => sum + point.longitude, 0) / route.length;
+  // Inicializar mapa cuando Leaflet esté cargado
+  useEffect(() => {
+    if (!L || !mapRef.current || map) return;
+    
+    // Crear el mapa
+    const newMap = L.map(mapRef.current, {
+      zoomControl: true,
+      attributionControl: true
+    });
+    
+    // Agregar capa de tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(newMap);
+    
+    setMap(newMap);
+    
+    return () => {
+      if (newMap) {
+        newMap.remove();
+      }
+    };
+  }, [L]);
   
-  // Calcular los límites para el zoom
-  const latitudes = route.map(point => point.latitude);
-  const longitudes = route.map(point => point.longitude);
-  const latRange = Math.max(...latitudes) - Math.min(...latitudes);
-  const lngRange = Math.max(...longitudes) - Math.min(...longitudes);
-  const maxRange = Math.max(latRange, lngRange);
+  // Actualizar mapa cuando cambie la ruta
+  useEffect(() => {
+    if (!map || !L || !route.length) return;
+    
+    // Limpiar marcadores anteriores
+    markersRef.current.forEach(marker => map.removeLayer(marker));
+    markersRef.current = [];
+    
+    // Limpiar polyline anterior
+    if (polylineRef.current) {
+      map.removeLayer(polylineRef.current);
+    }
+    
+    // Crear coordenadas para Leaflet
+    const coordinates = route.map(point => [point.latitude, point.longitude]);
+    
+    // Crear polyline
+    polylineRef.current = L.polyline(coordinates, {
+      color: '#8b5cf6',
+      weight: 4,
+      opacity: 0.8,
+      dashArray: '10, 10'
+    }).addTo(map);
+    
+    // Crear marcadores
+    route.forEach((point, index) => {
+      let iconHtml = '';
+      let className = '';
+      
+      if (index === 0) {
+        // Punto de origen
+        iconHtml = `
+          <div class="flex items-center justify-center w-8 h-8 bg-green-500 rounded-full border-2 border-white shadow-lg">
+            <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+            </svg>
+          </div>
+        `;
+        className = 'origin-marker';
+      } else if (index === route.length - 1) {
+        // Punto de destino
+        iconHtml = `
+          <div class="flex items-center justify-center w-8 h-8 bg-red-500 rounded-full border-2 border-white shadow-lg">
+            <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+            </svg>
+          </div>
+        `;
+        className = 'destination-marker';
+      } else {
+        // Puntos intermedios
+        iconHtml = `
+          <div class="flex items-center justify-center w-7 h-7 bg-indigo-500 rounded-full border-2 border-white shadow-lg">
+            <span class="text-white text-xs font-bold">${index + 1}</span>
+          </div>
+        `;
+        className = 'intermediate-marker';
+      }
+      
+      const customIcon = L.divIcon({
+        html: iconHtml,
+        className: `custom-marker ${className}`,
+        iconSize: [32, 32],
+        iconAnchor: [16, 16],
+        popupAnchor: [0, -16]
+      });
+      
+      const marker = L.marker([point.latitude, point.longitude], { icon: customIcon })
+        .addTo(map)
+        .bindPopup(`
+          <div class="p-2">
+            <div class="font-semibold text-gray-900">${point.center_name}</div>
+            <div class="text-sm text-gray-600">
+              Lat: ${point.latitude.toFixed(6)}<br>
+              Lng: ${point.longitude.toFixed(6)}
+            </div>
+            <div class="text-xs mt-1 px-2 py-1 rounded ${
+              index === 0 ? 'bg-green-100 text-green-700' :
+              index === route.length - 1 ? 'bg-red-100 text-red-700' :
+              'bg-indigo-100 text-indigo-700'
+            }">
+              ${index === 0 ? 'Origen' : index === route.length - 1 ? 'Destino' : `Parada ${index + 1}`}
+            </div>
+          </div>
+        `);
+      
+      marker.on('click', () => {
+        setSelectedPoint(selectedPoint === index ? null : index);
+      });
+      
+      markersRef.current.push(marker);
+    });
+    
+    // Ajustar vista para mostrar toda la ruta
+    map.fitBounds(coordinates, { padding: [20, 20] });
+    
+  }, [map, L, route, selectedPoint]);
   
-  // Escala para convertir coordenadas a píxeles (aumentando el zoom significativamente)
-  const scale = maxRange > 0 ? 400 / maxRange : 2000; // Aumentado de 200 a 400 (zoom 2x)
-  
-  // Función para convertir coordenadas geográficas a píxeles del SVG
-  const coordToPixel = (lat, lng) => ({
-    x: 300 + (lng - centerLng) * scale, // Ajustado para el nuevo tamaño
-    y: 250 - (lat - centerLat) * scale  // Ajustado para el nuevo tamaño
-  });
-
-  // Generar puntos SVG para la ruta
-  const svgPoints = route.map(point => ({
-    ...point,
-    ...coordToPixel(point.latitude, point.longitude)
-  }));
-
-  // Crear el path SVG para la línea de ruta
-  const pathData = svgPoints.reduce((path, point, index) => {
-    return path + (index === 0 ? `M ${point.x} ${point.y}` : ` L ${point.x} ${point.y}`);
-  }, '');
+  // Resaltar punto seleccionado
+  useEffect(() => {
+    if (!map || !L || selectedPoint === null) return;
+    
+    // Abrir popup del marcador seleccionado
+    if (markersRef.current[selectedPoint]) {
+      markersRef.current[selectedPoint].openPopup();
+    }
+  }, [selectedPoint, map, L]);
 
   return (
     <div className="bg-white border-purple-100 rounded-lg">
@@ -59,115 +187,22 @@ const RoutePreview = ({ orderData }) => {
       
       {/* Contenedor principal con layout en grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Mapa SVG - ocupará 2 columnas en pantallas grandes */}
+        {/* Mapa Leaflet */}
         <div className="lg:col-span-1">
           <div className="bg-gradient-to-br from-blue-50 to-green-50 rounded-lg p-4">
-            <svg 
-              width="100%" 
-              height="400" 
-              viewBox="0 0 600 500" 
-              className="border border-gray-200 rounded-lg bg-white shadow-inner"
-            >
-              {/* Grid de fondo */}
-              <defs>
-                <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
-                  <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#f0f0f0" strokeWidth="1"/>
-                </pattern>
-              </defs>
-              <rect width="100%" height="100%" fill="url(#grid)" />
-              
-              {/* Línea de ruta */}
-              <path
-                d={pathData}
-                stroke="#8b5cf6"
-                strokeWidth="3"
-                fill="none"
-                strokeDasharray="5,5"
-                className="animate-pulse"
-              />
-              
-              {/* Puntos de la ruta */}
-              {svgPoints.map((point, index) => (
-                <g key={`${point.center_id}-${index}`}>
-                  {/* Círculo del punto */}
-                  <circle
-                    cx={point.x}
-                    cy={point.y}
-                    r={index === 0 ? "10" : index === svgPoints.length - 1 ? "10" : "8"}
-                    fill={index === 0 ? "#10b981" : index === svgPoints.length - 1 ? "#ef4444" : "#6366f1"}
-                    stroke="white"
-                    strokeWidth="3"
-                    className="cursor-pointer hover:r-12 transition-all"
-                    onClick={() => setSelectedPoint(selectedPoint === index ? null : index)}
-                  />
-                  
-                  {/* Icono para el primer punto (origen) */}
-                  {index === 0 && (
-                    <MapPin 
-                      x={point.x - 8} 
-                      y={point.y - 8} 
-                      width="16" 
-                      height="16" 
-                      className="pointer-events-none text-white"
-                    />
-                  )}
-                  
-                  {/* Icono para el último punto (destino) */}
-                  {index === svgPoints.length - 1 && (
-                    <Target 
-                      x={point.x - 8} 
-                      y={point.y - 8} 
-                      width="16" 
-                      height="16" 
-                      className="pointer-events-none text-white"
-                    />
-                  )}
-                  
-                  {/* Número del punto */}
-                  <text
-                    x={point.x}
-                    y={point.y + 25}
-                    textAnchor="middle"
-                    className="text-sm font-bold fill-gray-600"
-                  >
-                    {index + 1}
-                  </text>
-                </g>
-              ))}
-              
-              {/* Información del punto seleccionado */}
-              {selectedPoint !== null && (
-                <g>
-                  <rect
-                    x={svgPoints[selectedPoint].x - 80}
-                    y={svgPoints[selectedPoint].y - 60}
-                    width="160"
-                    height="45"
-                    fill="white"
-                    stroke="#6366f1"
-                    strokeWidth="2"
-                    rx="8"
-                    className="drop-shadow-lg"
-                  />
-                  <text
-                    x={svgPoints[selectedPoint].x}
-                    y={svgPoints[selectedPoint].y - 40}
-                    textAnchor="middle"
-                    className="text-sm font-semibold fill-gray-800"
-                  >
-                    {route[selectedPoint].center_name}
-                  </text>
-                  <text
-                    x={svgPoints[selectedPoint].x}
-                    y={svgPoints[selectedPoint].y - 25}
-                    textAnchor="middle"
-                    className="text-xs fill-gray-600"
-                  >
-                    {route[selectedPoint].latitude.toFixed(4)}, {route[selectedPoint].longitude.toFixed(4)}
-                  </text>
-                </g>
-              )}
-            </svg>
+            <div 
+              ref={mapRef}
+              className="w-full h-96 rounded-lg border border-gray-200 shadow-inner"
+              style={{ minHeight: '400px' }}
+            />
+            {!L && (
+              <div className="absolute inset-0 flex items-center justify-center bg-gray-100 rounded-lg">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto mb-2"></div>
+                  <p className="text-sm text-gray-600">Cargando mapa...</p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
         
@@ -240,6 +275,22 @@ const RoutePreview = ({ orderData }) => {
           </div>
         </div>
       </div>
+      
+      <style jsx>{`
+        .custom-marker {
+          background: transparent !important;
+          border: none !important;
+        }
+        
+        .leaflet-popup-content-wrapper {
+          border-radius: 8px;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .leaflet-popup-tip {
+          background: white;
+        }
+      `}</style>
     </div>
   );
 };

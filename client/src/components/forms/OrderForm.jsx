@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
-import { User, Info, Loader2, ShoppingCart, Banknote, Check, Box } from 'lucide-react'
+import { User, Info, Loader2, ShoppingCart, Banknote, Check, Box, MapPin, Navigation } from 'lucide-react'
 import Modal from '../Modal'
 
 export default function OrderForm({ 
@@ -22,6 +22,7 @@ export default function OrderForm({
 
   const isEditing = !!order
   const watchedProductId = watch('product_id')
+  const watchedUseClientLocation = watch('use_client_location')
 
   const modalTitle = isEditing ? 'Editar Pedido' : 'Nuevo Pedido'
   const modalSubtitle = isEditing 
@@ -34,9 +35,19 @@ export default function OrderForm({
   useEffect(() => {
     if (isOpen) {
       if (isEditing) {
-        reset({ product_id: order.product_id })
+        reset({ 
+          product_id: order.product_id,
+          use_client_location: order.use_client_location || true,
+          latitude: order.latitude || '',
+          longitude: order.longitude || ''
+        })
       } else {
-        reset({ product_id: '' })
+        reset({ 
+          product_id: '',
+          use_client_location: true,
+          latitude: '',
+          longitude: ''
+        })
       }
     }
   }, [isOpen, order, isEditing, reset])
@@ -60,6 +71,160 @@ export default function OrderForm({
 
         <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
           
+          {/* Sección: Ubicación de Entrega */}
+          <div className="mb-8">
+            <div className="flex items-center mb-4">
+              <div className="bg-red-100 rounded-full p-2 mr-3">
+                <MapPin className="w-5 h-5 text-red-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-800">Ubicación de Entrega</h3>
+                <p className="text-sm text-gray-600">Selecciona la ubicación donde se realizará la entrega</p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              {/* Opción de ubicación */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  Tipo de Ubicación *
+                </label>
+                <div className="space-y-3">
+                  <label className="flex items-center cursor-pointer">
+                    <input
+                      type="radio"
+                      value={true}
+                      {...register('use_client_location', { required: 'Debe seleccionar un tipo de ubicación' })}
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                      disabled={isLoading}
+                    />
+                    <div className="ml-3 flex items-center">
+                      <div className="bg-blue-100 rounded-full p-1.5 mr-2">
+                        <Navigation className="w-3 h-3 text-blue-600" />
+                      </div>
+                      <div>
+                        <span className="text-sm font-medium text-gray-800">Usar ubicación del cliente</span>
+                        <p className="text-xs text-gray-500">Se utilizará la ubicación registrada del cliente</p>
+                      </div>
+                    </div>
+                  </label>
+                  
+                  <label className="flex items-center cursor-pointer">
+                    <input
+                      type="radio"
+                      value={false}
+                      {...register('use_client_location', { required: 'Debe seleccionar un tipo de ubicación' })}
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                      disabled={isLoading}
+                    />
+                    <div className="ml-3 flex items-center">
+                      <div className="bg-purple-100 rounded-full p-1.5 mr-2">
+                        <MapPin className="w-3 h-3 text-purple-600" />
+                      </div>
+                      <div>
+                        <span className="text-sm font-medium text-gray-800">Ingresar ubicación personalizada</span>
+                        <p className="text-xs text-gray-500">Especificar coordenadas de latitud y longitud</p>
+                      </div>
+                    </div>
+                  </label>
+                </div>
+                {errors.use_client_location && (
+                  <p className="text-red-500 text-sm mt-2 flex items-center">
+                    <Info className="w-4 h-4 mr-1" />
+                    {errors.use_client_location.message}
+                  </p>
+                )}
+              </div>
+
+              {/* Campos de coordenadas (mostrar solo si se selecciona ubicación personalizada) */}
+              {watchedUseClientLocation === 'false' && (
+                <div className="p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Latitud *
+                      </label>
+                      <input
+                        type="number"
+                        step="any"
+                        placeholder="Ej: 14.6349"
+                        {...register('latitude', { 
+                          required: watchedUseClientLocation === 'false' ? 'La latitud es requerida' : false,
+                          min: { value: -90, message: 'La latitud debe estar entre -90 y 90' },
+                          max: { value: 90, message: 'La latitud debe estar entre -90 y 90' }
+                        })}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                        disabled={isLoading}
+                      />
+                      {errors.latitude && (
+                        <p className="text-red-500 text-sm mt-1 flex items-center">
+                          <Info className="w-4 h-4 mr-1" />
+                          {errors.latitude.message}
+                        </p>
+                      )}
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Longitud *
+                      </label>
+                      <input
+                        type="number"
+                        step="any"
+                        placeholder="Ej: -90.5069"
+                        {...register('longitude', { 
+                          required: watchedUseClientLocation === 'false' ? 'La longitud es requerida' : false,
+                          min: { value: -180, message: 'La longitud debe estar entre -180 y 180' },
+                          max: { value: 180, message: 'La longitud debe estar entre -180 y 180' }
+                        })}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                        disabled={isLoading}
+                      />
+                      {errors.longitude && (
+                        <p className="text-red-500 text-sm mt-1 flex items-center">
+                          <Info className="w-4 h-4 mr-1" />
+                          {errors.longitude.message}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div className="flex items-start">
+                      <div className="bg-blue-500 rounded-full p-1 mr-2 flex-shrink-0 mt-0.5">
+                        <Info className="w-3 h-3 text-white" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-blue-800 font-medium mb-1">Información sobre coordenadas</p>
+                        <p className="text-xs text-blue-700">
+                          Las coordenadas deben estar en formato decimal. Por ejemplo, para Guatemala City: 
+                          Latitud: 14.6349, Longitud: -90.5069
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Indicador cuando se usa ubicación del cliente */}
+              {watchedUseClientLocation === 'true' && (
+                <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <div className="flex items-center">
+                    <div className="bg-green-500 rounded-full p-1 mr-2">
+                      <Check className="w-4 h-4 text-white" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-green-800 font-medium">Ubicación del cliente seleccionada</p>
+                      <p className="text-xs text-green-700 mt-1">
+                        Se utilizará la dirección registrada en el perfil del cliente
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
           {/* Sección: Productos */}
           <div>
             <div className="flex items-center mb-4">

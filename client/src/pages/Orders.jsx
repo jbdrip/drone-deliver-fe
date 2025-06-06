@@ -241,7 +241,8 @@ export default function Orders() {
     setIsSubmitting(true)
     try {
       let response
-      const order = { ...formData, quantity: 1 }
+      const { use_client_location, ...rest } = formData // Exclude use_client_location from order data
+      const order = { ...rest, quantity: 1 }
 
       if (selectedOrder) {
         // Editing existing order
