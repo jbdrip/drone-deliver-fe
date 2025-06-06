@@ -8,7 +8,14 @@ export const getCustomers = async (page = 1, limit = 10, search) => {
   })
   
   return await consumeService({
-    url: `customers?${params.toString()}`,
+    url: `customers/get/all?${params.toString()}`,
+    method: 'GET'
+  })
+}
+
+export const getCustomerByCurrentUser = async () => {
+  return await consumeService({
+    url: `customers/get/current`,
     method: 'GET'
   })
 }

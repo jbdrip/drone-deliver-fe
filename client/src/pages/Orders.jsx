@@ -10,6 +10,7 @@ import { toast } from 'react-toastify'
 import useConfirmDialog from '../components/ConfirmDialog'
 import { getProducts } from '../services/product.service'
 import { useUserData } from '../hooks/useAuth'
+import { getCustomerByCurrentUser } from '../services/customer.service'
 
 const statusOptions = [
   { value: 'pending', label: 'Pendiente', color: 'yellow' },
@@ -23,6 +24,7 @@ export default function Orders() {
 
   const [orders, setOrders] = useState([])
   const [products, setProducts] = useState([])
+  const [customer, setCustomer] = useState(null)
   const [totalOrders, setTotalOrders] = useState(0)
   const [currentPage, setCurrentPage] = useState(1)
   const [searchTerm, setSearchTerm] = useState('')
@@ -70,12 +72,31 @@ export default function Orders() {
       if (response.status === 'success' && response.data) {
         setProducts(response.data.products || [])
       } else {
-        console.error('Error fetching products:', response.message)
+        console.error('Error fetching products:', response.detail)
         setProducts([])
+        toast.error(`Error al obtener productos: ${response.detail}`)
       }
     } catch (error) {
       console.error('Error fetching products:', error)
       setProducts([])
+      toast.error('Error al obtener productos')
+    }
+  }, [])
+
+  const getCustomerCurrentUser = useCallback(async () => {
+    try {
+      const response = await getCustomerByCurrentUser()
+      if (response.status === 'success' && response.data) {
+        setCustomer(response.data)
+      } else {
+        console.error('Error fetching client:', response.detail)
+        setCustomer(null)
+        toast.error(`Error al obtener cliente: ${response.detail}`)
+      }
+    } catch (error) {
+      console.error('Error fetching client:', error)
+      setCustomer(null)
+      toast.error('Error al obtener cliente')
     }
   }, [])
 
@@ -93,6 +114,13 @@ export default function Orders() {
   useEffect(() => {
     fetchProducts()
   }, [fetchProducts])
+
+  // Efecto para cargar cliente actual
+  useEffect(() => {
+    if (userData?.role === 'customer') {
+      getCustomerCurrentUser()
+    }
+  }, [userData, getCustomerCurrentUser])
 
   const handlePageChange = (newPage) => {
     setCurrentPage(newPage)
@@ -406,8 +434,18 @@ export default function Orders() {
   return (
     <div className="h-full flex flex-col">
       {/* Header - Fixed height */}
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6 flex-shrink-0">
-        <h1 className="text-2xl font-bold text-gray-900">{userData?.role === 'customer' ? 'Mis' : ''} Pedidos</h1>
+      <div className={`flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 flex-shrink-0 ${userData?.role === 'customer' ? '' : 'mb-6'}`}>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">{userData?.role === 'customer' ? 'Mis' : ''} Pedidos</h1>
+          {/* Mostrar el saldo del cliente */}
+          {userData?.role === 'customer' && customer && (
+            <div className="text-md text-green-600">
+              Saldo disponible: <span className="font-semibold">Q {customer.credit_balance ? customer.credit_balance.toLocaleString('es-ES') : '0'}</span>
+            </div>
+          )}
+        </div>
+        
+        {/* Botón para crear pedido */}
         {userData?.role === 'customer' && (
           <button
             onClick={handleCreateOrder}
